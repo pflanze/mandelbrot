@@ -5,6 +5,24 @@ import Graphics.UI.Gtk.Gdk.GC
 import Graphics.UI.Gtk hiding (Color, Point, Object)
 
 import Control.Monad
+import Control.Parallel
+-- import Control.Concurrent.ParallelIO  http://hackage.haskell.org/package/parallel-io
+
+--parallel_forM :: [t] -> (t -> ()) -> [()]
+--forM  :: (Monad m) => [a] -> (a -> m b) -> m [b]
+--forM_ :: (Monad m) => [a] -> (a -> m b) -> m ()
+
+--parallel_forM :: (Monad m) => [t] -> (t -> m a) -> m ()
+
+parallel_forM (i:is) fn =
+  fn_i `par` fn_is `par` (pseq fn_i (fn_i >> fn_is))
+  -- (fn_i >> (parallel_forM is fn))
+  where fn_i = (fn i)
+        fn_is = (parallel_forM is fn)
+
+parallel_forM [] fn =
+  return ()
+
 
 intersection f g a = (f a) && (g a)
 
@@ -49,8 +67,8 @@ renderScene d ev = do
                 (65535 * 205)
  gcSetValues gc $ newGCValues { foreground = fg }
  
- forM [0..(w-1)] 
-   (\col -> forM [0..(h-1)] 
+ parallel_forM [0..(w-1)] 
+   (\col -> forM_ [0..(h-1)] 
           (\row -> 
             let x = inscreen 0 w col (-2.0) 1.0
                 y = inscreen 0 h row (-1.0) 1.0
