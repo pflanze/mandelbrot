@@ -2,21 +2,12 @@ module Main where
 
 import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Gdk.GC
-import Graphics.UI.Gtk hiding (Color, Point, Object)
-
 import Control.Monad
 import Control.Parallel
 -- import Control.Concurrent.ParallelIO  http://hackage.haskell.org/package/parallel-io
 
---parallel_forM :: [t] -> (t -> ()) -> [()]
---forM  :: (Monad m) => [a] -> (a -> m b) -> m [b]
---forM_ :: (Monad m) => [a] -> (a -> m b) -> m ()
-
---parallel_forM :: (Monad m) => [t] -> (t -> m a) -> m ()
-
 parallel_forM (i:is) fn =
   fn_i `par` fn_is `par` (pseq fn_i (fn_i >> fn_is))
-  -- (fn_i >> (parallel_forM is fn))
   where fn_i = (fn i)
         fn_is = (parallel_forM is fn)
 
@@ -38,7 +29,7 @@ divergeDepth maxdepth seq =
 
 inscreen :: Int -> Int -> Int -> Double -> Double -> Double
 inscreen from to i fromr tor =
- fromr + (tor - fromr) * (fromIntegral (i - from)) / (fromIntegral (to - from))
+  fromr + (tor - fromr) * (fromIntegral (i - from)) / (fromIntegral (to - from))
 
 square :: (Double,Double) -> (Double,Double)
 square (a,b) = 
@@ -47,55 +38,55 @@ square (a,b) =
 plus :: (Double,Double) -> (Double,Double) -> (Double,Double)
 plus (a1,a2) (b1,b2) = (a1+b1, a2+b2)
 
-mandel :: (Double, Double) -> [(Double, Double)]
+mandelseries :: (Double, Double) -> [(Double, Double)]
 
 piter :: (Double,Double) -> (Double,Double) -> (Double,Double)
 piter c z = plus (square z) c
 
 mandel_ c z =  z:(mandel_ c (piter c z))
-mandel c = mandel_ c (0.0,0.0)
+mandelseries c = mandel_ c (0.0,0.0)
 
 
 depth = 40
 
 renderScene d ev = do
- dw    <- widgetGetDrawWindow d
- (w, h) <- widgetGetSize d
- gc     <- gcNew dw
- let fg = Color (65535 * 0)
-                (65535 * 0)
-                (65535 * 205)
- gcSetValues gc $ newGCValues { foreground = fg }
+  dw    <- widgetGetDrawWindow d
+  (w, h) <- widgetGetSize d
+  gc     <- gcNew dw
+  let fg = Color (65535 * 0)
+                 (65535 * 0)
+                 (65535 * 205)
+  gcSetValues gc $ newGCValues { foreground = fg }
  
- parallel_forM [0..(w-1)] 
-   (\col -> forM_ [0..(h-1)] 
-          (\row -> 
-            let x = inscreen 0 w col (-2.0) 1.0
-                y = inscreen 0 h row (-1.0) 1.0
-                d = divergeDepth depth (mandel (x,y))
-            in
-             if (d == depth) then
-                drawPoint dw gc (col, row)
-             else
-                return ()))
+  parallel_forM [0..(w-1)] 
+    (\col -> forM_ [0..(h-1)] 
+             (\row -> 
+               let x = inscreen 0 w col (-2.0) 1.0
+                   y = inscreen 0 h row (-1.0) 1.0
+                   d = divergeDepth depth (mandelseries (x,y))
+               in
+                if (d == depth) then
+                  drawPoint dw gc (col, row)
+                else
+                  return ()))
    
- return True
+  return True
 
 main :: IO () 
 main = do
- initGUI
- window  <- windowNew
- drawing <- drawingAreaNew
- windowSetTitle window "Cells"
- containerAdd window drawing
- let bg = Color  (65535 * 0)
+  initGUI
+  window  <- windowNew
+  drawing <- drawingAreaNew
+  windowSetTitle window "Cells"
+  containerAdd window drawing
+  let bg = Color (65535 * 0)
                  (65535 * 205)
                  (65535 * 255)
- widgetModifyBg drawing StateNormal bg
- onExpose drawing (renderScene drawing)
+  widgetModifyBg drawing StateNormal bg
+  onExpose drawing (renderScene drawing)
  
- onDestroy window mainQuit
- windowSetDefaultSize window 800 600
- windowSetPosition window WinPosCenter
- widgetShowAll window
- mainGUI
+  onDestroy window mainQuit
+  windowSetDefaultSize window 800 600
+  windowSetPosition window WinPosCenter
+  widgetShowAll window
+  mainGUI
