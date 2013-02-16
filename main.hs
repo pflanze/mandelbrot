@@ -6,6 +6,18 @@ import Graphics.UI.Gtk hiding (Color, Point, Object)
 
 import Control.Monad
 
+intersection f g a = (f a) && (g a)
+
+dist2 (a,b) = 
+  a*a + b*b
+
+is_diverged x = (dist2 x) > (1e10**2)
+
+divergeDepth maxdepth seq =
+  fst (head (dropWhile (intersection (not . is_diverged . snd)
+                                     ((< maxdepth) . fst))
+                       (zip [1..] seq)))
+
 renderScene d ev = do
  dw    <- widgetGetDrawWindow d
  (w, h) <- widgetGetSize d
@@ -15,7 +27,10 @@ renderScene d ev = do
                 (65535 * 205)
  gcSetValues gc $ newGCValues { foreground = fg }
  
- forM [10..140] (\x -> forM [40..200] (\y -> drawPoint dw gc (x, y)))
+ forM [10..140] 
+   (\x -> forM [40..200] 
+          (\y -> 
+            drawPoint dw gc (x, y)))
  return True
 
 main :: IO () 
