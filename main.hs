@@ -4,6 +4,8 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Gdk.GC
 import Graphics.UI.Gtk hiding (Color, Point, Object)
 
+import Control.Monad
+
 renderScene d ev = do
  dw    <- widgetGetDrawWindow d
  (w, h) <- widgetGetSize d
@@ -12,7 +14,8 @@ renderScene d ev = do
                 (65535 * 0)
                 (65535 * 205)
  gcSetValues gc $ newGCValues { foreground = fg }
- drawPoint dw gc (120, 120)
+ 
+ forM_ [10..140] (\i -> drawPoint dw gc (i, 120))
  drawPoint dw gc (22, 22)
  --drawRectangle dw gc True 20 20 20 20
  return True
