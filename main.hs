@@ -4,23 +4,17 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Gdk.GC
 import Graphics.UI.Gtk hiding (Color, Point, Object)
 
-defaultFgColor :: Color
-defaultFgColor = Color 65535 65535 65535
-
-defaultBgColor :: Color
-defaultBgColor = Color 0 0 0
-
 renderScene d ev = do
  dw    <- widgetGetDrawWindow d
  (w, h) <- widgetGetSize d
  gc     <- gcNew dw
- let fg = Color (round (65535 * 205))
-                (round (65535 * 0))
-                (round (65535 * 0))
+ let fg = Color (65535 * 0)
+                (65535 * 0)
+                (65535 * 205)
  gcSetValues gc $ newGCValues { foreground = fg }
  drawPoint dw gc (120, 120)
  drawPoint dw gc (22, 22)
- drawRectangle dw gc True 20 20 20 20
+ --drawRectangle dw gc True 20 20 20 20
  return True
 
 main :: IO () 
@@ -30,9 +24,9 @@ main = do
  drawing <- drawingAreaNew
  windowSetTitle window "Cells"
  containerAdd window drawing
- let bg = Color  (round (65535 * 205))
-                 (round (65535 * 205))
-                 (round (65535 * 255))
+ let bg = Color  (65535 * 0)
+                 (65535 * 205)
+                 (65535 * 255)
  widgetModifyBg drawing StateNormal bg
  onExpose drawing (renderScene drawing)
  
