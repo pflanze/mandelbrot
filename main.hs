@@ -46,15 +46,15 @@ renderScene d ev = do
                 (65535 * 205)
  gcSetValues gc $ newGCValues { foreground = fg }
  
- forM [10..140] 
-   (\h -> forM [40..200] 
-          (\v -> 
-            let x = inscreen 10 140 h (-2.0) 1.0
-                y = inscreen 40 200 v (-1.0) 1.0
+ forM [0..(w-1)] 
+   (\col -> forM [0..(h-1)] 
+          (\row -> 
+            let x = inscreen 0 w col (-2.0) 1.0
+                y = inscreen 0 h row (-1.0) 1.0
                 d = divergeDepth 40 (mandel (x,y))
             in
              if (d == 40) then
-                drawPoint dw gc (h, v)
+                drawPoint dw gc (col, row)
              else
                 return ()))
    
