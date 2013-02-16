@@ -15,9 +15,7 @@ renderScene d ev = do
                 (65535 * 205)
  gcSetValues gc $ newGCValues { foreground = fg }
  
- forM [10..140] (\i -> drawPoint dw gc (i, 120))
- drawPoint dw gc (22, 22)
- --drawRectangle dw gc True 20 20 20 20
+ forM [10..140] (\x -> forM [40..200] (\y -> drawPoint dw gc (x, y)))
  return True
 
 main :: IO () 
