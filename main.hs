@@ -37,6 +37,9 @@ piter c z = plus (square z) c
 mandel_ c z =  z:(mandel_ c (piter c z))
 mandel c = mandel_ c (0.0,0.0)
 
+
+depth = 40
+
 renderScene d ev = do
  dw    <- widgetGetDrawWindow d
  (w, h) <- widgetGetSize d
@@ -51,9 +54,9 @@ renderScene d ev = do
           (\row -> 
             let x = inscreen 0 w col (-2.0) 1.0
                 y = inscreen 0 h row (-1.0) 1.0
-                d = divergeDepth 40 (mandel (x,y))
+                d = divergeDepth depth (mandel (x,y))
             in
-             if (d == 40) then
+             if (d == depth) then
                 drawPoint dw gc (col, row)
              else
                 return ()))
