@@ -18,6 +18,25 @@ divergeDepth maxdepth seq =
                                      ((< maxdepth) . fst))
                        (zip [1..] seq)))
 
+inscreen :: Int -> Int -> Int -> Double -> Double -> Double
+inscreen from to i fromr tor =
+ fromr + (tor - fromr) * (fromIntegral (i - from)) / (fromIntegral (to - from))
+
+square :: (Double,Double) -> (Double,Double)
+square (a,b) = 
+  (a*a - b*b, 2*a*b)
+  
+plus :: (Double,Double) -> (Double,Double) -> (Double,Double)
+plus (a1,a2) (b1,b2) = (a1+b1, a2+b2)
+
+mandel :: (Double, Double) -> [(Double, Double)]
+
+piter :: (Double,Double) -> (Double,Double) -> (Double,Double)
+piter c z = plus (square z) c
+
+mandel_ c z =  z:(mandel_ c (piter c z))
+mandel c = mandel_ c (0.0,0.0)
+
 renderScene d ev = do
  dw    <- widgetGetDrawWindow d
  (w, h) <- widgetGetSize d
@@ -28,9 +47,17 @@ renderScene d ev = do
  gcSetValues gc $ newGCValues { foreground = fg }
  
  forM [10..140] 
-   (\x -> forM [40..200] 
-          (\y -> 
-            drawPoint dw gc (x, y)))
+   (\h -> forM [40..200] 
+          (\v -> 
+            let x = inscreen 10 140 h (-2.0) 1.0
+                y = inscreen 40 200 v (-1.0) 1.0
+                d = divergeDepth 40 (mandel (x,y))
+            in
+             if (d == 40) then
+                drawPoint dw gc (h, v)
+             else
+                return ()))
+   
  return True
 
 main :: IO () 
