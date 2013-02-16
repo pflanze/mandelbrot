@@ -7,23 +7,23 @@ import Control.Parallel
 -- import Control.Concurrent.ParallelIO  http://hackage.haskell.org/package/parallel-io
 
 parallel_forM (i:is) fn =
-  fn_i `par` fn_is `par` (pseq fn_i (fn_i >> fn_is))
-  where fn_i = (fn i)
-        fn_is = (parallel_forM is fn)
+  fn_i `par` fn_is `par` pseq fn_i (fn_i >> fn_is)
+  where fn_i = fn i
+        fn_is = parallel_forM is fn
 
 parallel_forM [] fn =
   return ()
 
 
-intersection f g a = (f a) && (g a)
+intersection f g a = f a && g a
 
 dist2 (a,b) = 
   a*a + b*b
 
-is_diverged x = (dist2 x) > (1e10**2)
+isDiverged x = (dist2 x) > (1e10**2)
 
 divergeDepth maxdepth seq =
-  fst (head (dropWhile (intersection (not . is_diverged . snd)
+  fst (head (dropWhile (intersection (not . isDiverged . snd)
                                      ((< maxdepth) . fst))
                        (zip [1..] seq)))
 
@@ -43,7 +43,7 @@ mandelseries :: (Double, Double) -> [(Double, Double)]
 piter :: (Double,Double) -> (Double,Double) -> (Double,Double)
 piter c z = plus (square z) c
 
-mandel_ c z =  z:(mandel_ c (piter c z))
+mandel_ c z =  z : mandel_ c (piter c z)
 mandelseries c = mandel_ c (0.0,0.0)
 
 
@@ -65,7 +65,7 @@ renderScene d ev = do
                    y = inscreen 0 h row (-1.0) 1.0
                    d = divergeDepth depth (mandelseries (x,y))
                in
-                if (d == depth) then
+                if d == depth then
                   drawPoint dw gc (col, row)
                 else
                   return ()))
