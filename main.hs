@@ -16,7 +16,7 @@ chunked chunksize lis =
 
 
 parallel_forM (i:is) fn =
-  fn_i `par` (fn_i >> fn_is)
+  fn_i `par` (fn_is `pseq` (fn_i >> fn_is))
   where fn_i = fn i
         fn_is = parallel_forM is fn
 
@@ -58,7 +58,7 @@ mandel_ c z =  z : mandel_ c (piter c z)
 mandelseries c = mandel_ c (0.0,0.0)
 
 
-depth = 40
+depth = 90
 
 renderScene d ev = do
   dw    <- widgetGetDrawWindow d
