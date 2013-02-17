@@ -60,6 +60,10 @@ chunkedParallelMap chunksize fn vs =
 both f g a = f a && g a
 
 
+-- Complex numbers
+
+magnitudesquare (r :+ i) = r*r + i*i
+
 -- Mandelbrot series
 
 mandelseries :: (Complex Double) -> [(Complex Double)]
@@ -72,7 +76,7 @@ mandelseries c = mandel_ c (0.0 :+ 0.0)
 
 -- and its presentation
 
-isDiverged x = (magnitude x) > 1e10
+isDiverged x = (magnitudesquare x) > (1e10**2)
 
 divergeDepth maxdepth seq =
   fst (head (dropWhile (both (not . isDiverged . snd)
