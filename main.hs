@@ -23,13 +23,15 @@ parallel_forM (i:is) fn =
 parallel_forM [] fn =
   return ()
 
+chunkedParallelForM chunksize is fn =
+  parallel_forM (chunked chunksize is) (\is -> forM_ is fn)
 
 intersection f g a = f a && g a
 
-dist2 (a,b) = 
+distsquare (a,b) = 
   a*a + b*b
 
-isDiverged x = (dist2 x) > (1e10**2)
+isDiverged x = (distsquare x) > (1e10**2)
 
 divergeDepth maxdepth seq =
   fst (head (dropWhile (intersection (not . isDiverged . snd)
@@ -67,7 +69,7 @@ renderScene d ev = do
                  (65535 * 205)
   gcSetValues gc $ newGCValues { foreground = fg }
  
-  parallel_forM [0..(w-1)] 
+  chunkedParallelForM 40 [0..(w-1)] 
     (\col -> forM_ [0..(h-1)] 
              (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
