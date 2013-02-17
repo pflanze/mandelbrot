@@ -22,6 +22,17 @@ parallelMap fn (v:vs) =
 parallelMap fn [] = []
 
 
+strictAppend [] l = l
+strictAppend (v:vs) l =
+  seq vs' (v : vs')
+  where vs' = strictAppend vs l
+
+
+strictFlatten (l:ls) =
+  strictAppend l (strictFlatten ls)
+strictFlatten [] = []
+
+
 chunked chunksize lis =
   ch chunksize lis
   where
@@ -41,6 +52,10 @@ parallel_forM [] fn =
 
 chunkedParallelForM chunksize is fn =
   parallel_forM (chunked chunksize is) (\is -> forM_ is fn)
+
+
+chunkedParallelMap chunksize fn vs =
+  strictFlatten $ parallelMap (\chunk -> strictMap fn chunk) (chunked chunksize vs)
 
 intersection f g a = f a && g a
 
