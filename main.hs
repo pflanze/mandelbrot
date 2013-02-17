@@ -7,13 +7,20 @@ import Control.Parallel
 import Control.Parallel.Strategies
 
 
---strictMap :: (a -> b) -> [a] -> [b]
+strictMap :: (a -> b) -> [a] -> [b]
 strictMap fn (v:vs) =
   seq vs' (seq v' (v':vs'))
-  --(v':vs')
   where v' = fn v
         vs' = strictMap fn vs
 strictMap fn [] = []
+
+parallelMap :: (a -> b) -> [a] -> [b]
+parallelMap fn (v:vs) =
+  seq vs' (par v' (v':vs'))
+  where v' = fn v
+        vs' = parallelMap fn vs
+parallelMap fn [] = []
+
 
 chunked chunksize lis =
   ch chunksize lis
@@ -78,7 +85,7 @@ renderScene d ev = do
                  (65535 * 205)
   gcSetValues gc $ newGCValues { foreground = fg }
  
-  let ll= strictMap (\col -> map (\row -> 
+  let ll= parallelMap (\col -> strictMap (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
                    y = inscreen 0 h row (-1.0) 1.0
                    d = divergeDepth depth (mandelseries (x,y))
