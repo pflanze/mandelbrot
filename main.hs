@@ -5,6 +5,7 @@ import Graphics.UI.Gtk.Gdk.GC
 import Control.Monad
 import Control.Parallel
 import Control.Parallel.Strategies
+import Data.Complex
 
 
 -- process control
@@ -59,32 +60,19 @@ chunkedParallelMap chunksize fn vs =
 both f g a = f a && g a
 
 
--- Complex numbers
-
-square :: (Double,Double) -> (Double,Double)
-square (a,b) = 
-  (a*a - b*b, 2*a*b)
-  
-plus :: (Double,Double) -> (Double,Double) -> (Double,Double)
-plus (a1,a2) (b1,b2) = (a1+b1, a2+b2)
-
--- distance^2 from (0,0)
-distsquare (a,b) = 
-  a*a + b*b
-
 -- Mandelbrot series
 
-mandelseries :: (Double, Double) -> [(Double, Double)]
+mandelseries :: (Complex Double) -> [(Complex Double)]
 
-piter :: (Double,Double) -> (Double,Double) -> (Double,Double)
-piter c z = (square z) `plus` c
+piter :: (Complex Double) -> (Complex Double) -> (Complex Double)
+piter c z = z^2 + c
 
 mandel_ c z =  z : mandel_ c (piter c z)
-mandelseries c = mandel_ c (0.0,0.0)
+mandelseries c = mandel_ c (0.0 :+ 0.0)
 
 -- and its presentation
 
-isDiverged x = (distsquare x) > (1e10**2)
+isDiverged x = (magnitude x) > 1e10
 
 divergeDepth maxdepth seq =
   fst (head (dropWhile (both (not . isDiverged . snd)
@@ -110,7 +98,7 @@ renderScene d ev = do
   let ll= chunkedParallelMap 20 (\col -> strictMap (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
                    y = inscreen 0 h row (-1.0) 1.0
-                   d = divergeDepth depth (mandelseries (x,y))
+                   d = divergeDepth depth (mandelseries (x :+ y))
                in
                 if d == depth then
                   drawPoint dw gc (col, row)
