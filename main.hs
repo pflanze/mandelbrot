@@ -69,7 +69,7 @@ renderScene d ev = do
                  (65535 * 205)
   gcSetValues gc $ newGCValues { foreground = fg }
  
-  chunkedParallelForM 40 [0..(w-1)] 
+  chunkedParallelForM 200 [0..(w-1)] 
     (\col -> forM_ [0..(h-1)] 
              (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
