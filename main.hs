@@ -7,7 +7,7 @@ import Control.Parallel
 -- import Control.Concurrent.ParallelIO  http://hackage.haskell.org/package/parallel-io
 
 parallel_forM (i:is) fn =
-  fn_i `par` pseq fn_i (fn_i >> fn_is)
+  fn_i `par` fn_is `par` (fn_i >> fn_is)
   where fn_i = fn i
         fn_is = parallel_forM is fn
 
