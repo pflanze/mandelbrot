@@ -4,7 +4,16 @@ import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Gdk.GC
 import Control.Monad
 import Control.Parallel
--- import Control.Concurrent.ParallelIO  http://hackage.haskell.org/package/parallel-io
+import Control.Parallel.Strategies
+
+
+--strictMap :: (a -> b) -> [a] -> [b]
+strictMap fn (v:vs) =
+  seq vs' (seq v' (v':vs'))
+  --(v':vs')
+  where v' = fn v
+        vs' = strictMap fn vs
+strictMap fn [] = []
 
 chunked chunksize lis =
   ch chunksize lis
@@ -69,9 +78,7 @@ renderScene d ev = do
                  (65535 * 205)
   gcSetValues gc $ newGCValues { foreground = fg }
  
-  chunkedParallelForM 200 [0..(w-1)] 
-    (\col -> forM_ [0..(h-1)] 
-             (\row -> 
+  let ll= strictMap (\col -> map (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
                    y = inscreen 0 h row (-1.0) 1.0
                    d = divergeDepth depth (mandelseries (x,y))
@@ -79,8 +86,10 @@ renderScene d ev = do
                 if d == depth then
                   drawPoint dw gc (col, row)
                 else
-                  return ()))
+                  return ()) [0..(h-1)]) [0..(w-1)]
    
+  forM_ ll (\col -> forM_ col (\row -> row))
+
   return True
 
 main :: IO () 
