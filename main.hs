@@ -100,7 +100,7 @@ renderScene d ev = do
                  (65535 * 205)
   gcSetValues gc $ newGCValues { foreground = fg }
  
-  let ll= chunkedParallelMap 40 (\col -> strictMap (\row -> 
+  let ll= chunkedParallelMap 20 (\col -> strictMap (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
                    y = inscreen 0 h row (-1.0) 1.0
                    d = divergeDepth depth (mandelseries (x,y))
