@@ -6,6 +6,15 @@ import Control.Monad
 import Control.Parallel
 -- import Control.Concurrent.ParallelIO  http://hackage.haskell.org/package/parallel-io
 
+chunked chunksize lis =
+  ch chunksize lis
+  where
+  ch 0 vs = []:(ch chunksize vs)
+  ch s (v:vs) = (v:lfront) : ls
+    where (lfront:ls) = ch (s-1) vs
+  ch s [] = [[]]
+
+
 parallel_forM (i:is) fn =
   fn_i `par` (fn_i >> fn_is)
   where fn_i = fn i
