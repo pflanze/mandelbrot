@@ -6,6 +6,10 @@ import Control.Monad
 import Control.Parallel
 import Control.Parallel.Strategies
 import Data.Complex
+import Debug.Trace
+
+
+notrace msg res = res
 
 
 -- process control
@@ -64,8 +68,28 @@ both f g a = f a && g a
 
 magnitudesquare (r :+ i) = r*r + i*i
 
+-- my own
+
+myIterateUntil pred maxdepth fn start = 
+  iter maxdepth start
+  where iter 0 z = (maxdepth, z)
+        iter d z = if notrace ((show d) ++ " -- " ++ (show z)) pred z then
+                     (maxdepth-d,z)
+                   else
+                     iter (d-1) (fn z)
+
 -- Mandelbrot series
 
+pIter c z = z^2 + c
+
+-- and its presentation
+
+isDiverged x = (magnitudesquare x) > (1e10**2)
+
+mandelbrotDepth maxdepth p = d where 
+  (d,_)= myIterateUntil isDiverged maxdepth (pIter (0 :+ 0)) p
+
+-- OLD
 mandelseries :: (Complex Double) -> [(Complex Double)]
 
 piter :: (Complex Double) -> (Complex Double) -> (Complex Double)
@@ -74,14 +98,15 @@ piter c z = z^2 + c
 mandel_ c z =  z : mandel_ c (piter c z)
 mandelseries c = mandel_ c (0.0 :+ 0.0)
 
--- and its presentation
-
-isDiverged x = (magnitudesquare x) > (1e10**2)
-
 divergeDepth maxdepth seq =
   fst (head (dropWhile (both (not . isDiverged . snd)
                              ((< maxdepth) . fst))
                        (zip [1..] seq)))
+
+mandelbrotDepthOLD maxdepth p = 
+  divergeDepth maxdepth (mandelseries p)
+
+-- /OLD
 
 inscreen :: Int -> Int -> Int -> Double -> Double -> Double
 inscreen from to i fromr tor =
@@ -102,12 +127,14 @@ renderScene d ev = do
   let ll= chunkedParallelMap 20 (\col -> strictMap (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
                    y = inscreen 0 h row (-1.0) 1.0
-                   d = divergeDepth depth (mandelseries (x :+ y))
+                   d = mandelbrotDepth depth (x :+ y)
                in
-                if d == depth then
-                  drawPoint dw gc (col, row)
-                else
-                  return ()) [0..(h-1)]) [0..(w-1)]
+                notrace ((show depth)++"--("++(show x)++";"++(show y)++") "++(show d)) 
+                      (if d == depth then
+                         drawPoint dw gc (col, row)
+                       else
+                         return ())) 
+               [0..(h-1)]) [0..(w-1)]
    
   forM_ ll (\col -> forM_ col (\row -> row))
 
