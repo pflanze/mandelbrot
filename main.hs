@@ -8,6 +8,17 @@ import Control.Parallel.Strategies
 import Data.Complex
 import Debug.Trace
 
+-- Testing
+import Test.QuickCheck
+
+data ComplexDouble = Complex Double
+
+instance Arbitrary ComplexDouble where
+  arbitrary = choose (((-2) :+ (-1)), (1 :+ 1))
+  -- coarbitrary c = variant (ord c `rem` 4)   what's that?
+
+--
+
 
 notrace msg res = res
 
