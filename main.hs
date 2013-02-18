@@ -87,6 +87,7 @@ pIter c z = z^2 + c
 
 isDiverged x = (magnitudesquare x) > (1e10**2)
 
+mandelbrotDepth :: Int -> Complex Double -> Int
 mandelbrotDepth maxdepth p = d where 
   (d,_)= myIterateUntil isDiverged maxdepth (pIter (0 :+ 0)) p
 
@@ -104,6 +105,7 @@ divergeDepth maxdepth seq =
                              ((< maxdepth) . fst))
                        (zip [1..] seq)))
 
+mandelbrotDepthOLD :: Int -> Complex Double -> Int
 mandelbrotDepthOLD maxdepth p = 
   divergeDepth maxdepth (mandelseries p)
 
