@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Main where
 
 import Graphics.UI.Gtk
@@ -11,10 +13,8 @@ import Debug.Trace
 -- Testing
 import Test.QuickCheck
 
-data ComplexDouble = Complex Double
-
-instance Arbitrary ComplexDouble where
-  arbitrary = choose (((-2) :+ (-1)), (1 :+ 1))
+instance Arbitrary (Complex Double) where
+  arbitrary = choose ((-2) :+ (-1), 1 :+ 1)
   -- coarbitrary c = variant (ord c `rem` 4)   what's that?
 
 --
