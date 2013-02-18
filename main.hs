@@ -70,6 +70,7 @@ magnitudesquare (r :+ i) = r*r + i*i
 
 -- my own
 
+myIterateUntil :: (Show a) => (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
 myIterateUntil pred maxdepth fn start = 
   iter maxdepth start
   where iter 0 z = (maxdepth, z)
