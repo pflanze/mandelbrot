@@ -12,10 +12,8 @@ import Debug.Trace
 
 -- Testing
 import Test.QuickCheck
-
-instance Arbitrary (Complex Double) where
-  arbitrary = choose ((-2) :+ (-1), 1 :+ 1)
-  -- coarbitrary c = variant (ord c `rem` 4)   what's that?
+import System.Random
+import Control.Applicative
 
 --
 
@@ -100,7 +98,7 @@ isDiverged x = (magnitudesquare x) > (1e10**2)
 
 mandelbrotDepth :: Int -> Complex Double -> Int
 mandelbrotDepth maxdepth p = d where 
-  (d,_)= myIterateUntil isDiverged maxdepth (pIter (0 :+ 0)) p
+  (d,_)= myIterateUntil isDiverged maxdepth (pIter p) (0 :+ 0)
 
 -- OLD
 mandelseries :: (Complex Double) -> [(Complex Double)]
@@ -108,7 +106,8 @@ mandelseries :: (Complex Double) -> [(Complex Double)]
 piter :: (Complex Double) -> (Complex Double) -> (Complex Double)
 piter c z = z^2 + c
 
-mandel_ c z =  z : mandel_ c (piter c z)
+mandel_ c z =  z' : mandel_ c z'
+  where z'= piter c z
 mandelseries c = mandel_ c (0.0 :+ 0.0)
 
 divergeDepth maxdepth seq =
