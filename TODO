@@ -1,0 +1,5 @@
+ok next
+:
+- each line in a (strict) vector.
+ - draw it immediately once finished.
+  - draw immediately to the screen? how. mmapped? pixbuf not enough?.
