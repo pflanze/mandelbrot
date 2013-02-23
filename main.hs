@@ -4,6 +4,12 @@ module Main where
 
 import Graphics.UI.Gtk
 import Graphics.UI.Gtk.Gdk.GC
+import Graphics.UI.Gtk.Gdk.Pixbuf
+import Data.Word (Word8)
+--import qualified Data.Vector.Unboxed.Mutable as UM
+import Data.Array.MArray --writeArray
+
+
 import Control.Monad
 import Control.Parallel
 import Control.Parallel.Strategies
@@ -132,10 +138,16 @@ renderScene d ev = do
   dw    <- widgetGetDrawWindow d
   (w, h) <- widgetGetSize d
   gc     <- gcNew dw
-  let fg = Color (65535 * 0)
-                 (65535 * 0)
-                 (65535 * 205)
-  gcSetValues gc $ newGCValues { foreground = fg }
+  -- pixbuf
+  pb <- pixbufNew ColorspaceRgb False 8 w h
+  pixels <- (pixbufGetPixels pb :: IO (PixbufData Int Word8))
+  rowstride <- pixbufGetRowstride pb
+  nChannels <- pixbufGetNChannels pb
+  let setPoint x y r g b =
+        do writeArray pixels p r
+           writeArray pixels (p+1) g
+           writeArray pixels (p+2) b
+        where p = y * rowstride + x * nChannels
  
   let ll= chunkedParallelMap 20 (\col -> strictMap (\row -> 
                let x = inscreen 0 w col (-2.0) 1.0
@@ -144,12 +156,14 @@ renderScene d ev = do
                in
                 notrace ((show depth)++"--("++(show x)++";"++(show y)++") "++(show d)) 
                       (if d == depth then
-                         drawPoint dw gc (col, row)
+                         setPoint col row 100 100 100
                        else
                          return ())) 
                [0..(h-1)]) [0..(w-1)]
    
   forM_ ll (\col -> forM_ col (\row -> row))
+  
+  drawPixbuf dw gc pb 0 0 0 0 w h RgbDitherNone 0 0
 
   return True
 
