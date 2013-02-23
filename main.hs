@@ -74,6 +74,17 @@ chunkedParallelMap chunksize fn vs =
   strictFlatten $ parallelMap (\chunk -> strictMap fn chunk) (chunked chunksize vs)
 
 
+-- monadic for-each for a range
+
+forM_0To end m = for 0
+  where for i = 
+          if i < end then
+            do m i
+               for (i+1)
+          else
+            return ()
+    
+
 -- missing function combinator
 
 both f g a = f a && g a
@@ -149,19 +160,22 @@ renderScene d ev = do
            writeArray pixels (p+2) b
         where p = y * rowstride + x * nChannels
  
-  let ll= chunkedParallelMap 20 (\col -> strictMap (\row -> 
-               let x = inscreen 0 w col (-2.0) 1.0
-                   y = inscreen 0 h row (-1.0) 1.0
+  let ll= chunkedParallelMap 20 
+          (\_x -> 
+            forM_0To h
+            (\_y -> 
+               let x = inscreen 0 w _x (-2.0) 1.0
+                   y = inscreen 0 h _y (-1.0) 1.0
                    d = mandelbrotDepth depth (x :+ y)
                in
                 notrace ((show depth)++"--("++(show x)++";"++(show y)++") "++(show d)) 
                       (if d == depth then
-                         setPoint col row 100 100 100
+                         setPoint _x _y 100 100 100
                        else
-                         return ())) 
-               [0..(h-1)]) [0..(w-1)]
+                         return ())))
+          [0..(w-1)]
    
-  forM_ ll (\col -> forM_ col (\row -> row))
+  forM_ ll id
   
   drawPixbuf dw gc pb 0 0 0 0 w h RgbDitherNone 0 0
 
