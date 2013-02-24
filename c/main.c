@@ -111,7 +111,8 @@ int
 renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     GtkWidget *dw= __HACK_drawing;
     gint w,h;
-    gtk_window_get_size(d, &w, &h);
+    w=200; h=200; //XXX gtk_window_get_size(d, &w, &h);
+    
     // what is gc for, if never changed???      gc     <- gcNew dw
     //-- pixbuf
     assert(dw);
