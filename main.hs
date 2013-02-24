@@ -54,7 +54,7 @@ both f g a = f a && g a
 
 -- Complex numbers
 
-magnitudesquare (r :+ i) = r*r + i*i
+magnitudesquare !(r :+ i) = r*r + i*i
 
 -- my own
 
