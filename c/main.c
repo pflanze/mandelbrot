@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <unistd.h>
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -113,8 +114,12 @@ renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     gtk_window_get_size(d, &w, &h);
     // what is gc for, if never changed???      gc     <- gcNew dw
     //-- pixbuf
+    assert(dw);
+    assert(w>0);
+    assert(h>0);
     {
 	GdkPixbuf *pb= gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8, w, h);
+	assert(pb);
 	{
 	    int _x, _y;
 	    struct pb_context ctx;
@@ -174,6 +179,8 @@ main ( int   argc,
     gtk_init (&argc, &argv); // initGUI();
     window= gtk_window_new(GTK_WINDOW_TOPLEVEL);
     drawing= gtk_drawing_area_new();
+    assert(window);
+    assert(drawing);
     __HACK_drawing= drawing;
     gtk_window_set_title(window, "Mandelbrot");
     gtk_container_add (GTK_CONTAINER (window), drawing);
