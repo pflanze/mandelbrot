@@ -41,11 +41,6 @@ parallelForM_0To !end !m =
   do ids <- generateM end (\i -> async $ m i)
      Data.Vector.forM_ ids wait
 
--- missing function combinator
-
-both f g a = f a && g a
-
-
 -- Complex numbers
 
 magnitudesquare !(r :+ i) = r*r + i*i
