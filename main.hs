@@ -16,17 +16,11 @@ import Control.Concurrent.Async
 import Control.Parallel
 import Control.Parallel.Strategies
 import Data.Complex
-import Debug.Trace
 
 -- Testing
 import Test.QuickCheck
 import System.Random
 import Control.Applicative
-
---
-
-
-notrace msg res = res
 
 
 -- monadic for-each for a range
@@ -79,26 +73,6 @@ mandelbrotDepth :: Int -> Complex Double -> Int
 mandelbrotDepth !maxdepth !p =
   fst $ myIterateUntil isDiverged maxdepth (pIter p) (0 :+ 0)
 
--- OLD
-mandelseries :: (Complex Double) -> [(Complex Double)]
-
-piter :: (Complex Double) -> (Complex Double) -> (Complex Double)
-piter c z = z^2 + c
-
-mandel_ c z =  z' : mandel_ c z'
-  where z'= piter c z
-mandelseries c = mandel_ c (0.0 :+ 0.0)
-
-divergeDepth maxdepth seq =
-  fst (head (dropWhile (both (not . isDiverged . snd)
-                             ((< maxdepth) . fst))
-                       (zip [1..] seq)))
-
-mandelbrotDepthOLD :: Int -> Complex Double -> Int
-mandelbrotDepthOLD maxdepth p = 
-  divergeDepth maxdepth (mandelseries p)
-
--- /OLD
 
 inscreen :: Int -> Int -> Int -> Double -> Double -> Double
 inscreen from to i fromr tor =
@@ -117,6 +91,7 @@ renderScene d ev = do
   pixels <- (pixbufGetPixels pb :: IO (PixbufData Int Word8))
   rowstride <- pixbufGetRowstride pb
   nChannels <- pixbufGetNChannels pb
+  
   let setPoint !x !y !r !g !b =
         do writeArray pixels p r
            writeArray pixels (p+1) g
