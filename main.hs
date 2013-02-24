@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances, BangPatterns #-}
 
 module Main where
 
@@ -8,9 +8,11 @@ import Graphics.UI.Gtk.Gdk.Pixbuf
 import Data.Word (Word8)
 --import qualified Data.Vector.Unboxed.Mutable as UM
 import Data.Array.MArray --writeArray
-
+import Data.Vector (generateM, forM_) -- .Unboxed
 
 import Control.Monad
+--import Control.Concurrent
+import Control.Concurrent.Async
 import Control.Parallel
 import Control.Parallel.Strategies
 import Data.Complex
@@ -27,63 +29,23 @@ import Control.Applicative
 notrace msg res = res
 
 
--- process control
-
-strictMap :: (a -> b) -> [a] -> [b]
-strictMap fn (v:vs) =
-  seq vs' (seq v' (v':vs'))
-  where v' = fn v
-        vs' = strictMap fn vs
-strictMap fn [] = []
-
-parallelMap :: (a -> b) -> [a] -> [b]
-parallelMap fn (v:vs) =
-  seq vs' (par v' (v':vs'))
-  where v' = fn v
-        vs' = parallelMap fn vs
-parallelMap fn [] = []
-
-strictAppend [] l = l
-strictAppend (v:vs) l =
-  seq vs' (v : vs')
-  where vs' = strictAppend vs l
-
-strictFlatten (l:ls) =
-  strictAppend l (strictFlatten ls)
-strictFlatten [] = []
-
-chunked chunksize lis =
-  ch chunksize lis
-  where
-  ch 0 vs = []:(ch chunksize vs)
-  ch s (v:vs) = (v:lfront) : ls
-    where (lfront:ls) = ch (s-1) vs
-  ch s [] = [[]]
-
-parallel_forM (i:is) fn =
-  fn_i `par` (fn_is `pseq` (fn_i >> fn_is))
-  where fn_i = fn i
-        fn_is = parallel_forM is fn
-parallel_forM [] fn =
-  return ()
-
-chunkedParallelForM chunksize is fn =
-  parallel_forM (chunked chunksize is) (\is -> forM_ is fn)
-
-chunkedParallelMap chunksize fn vs =
-  strictFlatten $ parallelMap (\chunk -> strictMap fn chunk) (chunked chunksize vs)
-
-
 -- monadic for-each for a range
 
-forM_0To end m = for 0
+forM_0To :: Int -> (Int -> IO b) -> IO ()
+forM_0To !end !m = for 0
   where for i = 
           if i < end then
             do m i
                for (i+1)
           else
             return ()
-    
+
+-- 'totally unsafe' parallel undeterministic execution of m in
+-- parallel. Good or horrible idea?
+parallelForM_0To :: Int -> (Int -> IO b) -> IO ()
+parallelForM_0To !end !m = 
+  do ids <- generateM end (\i -> async $ m i)
+     Data.Vector.forM_ ids wait
 
 -- missing function combinator
 
@@ -145,6 +107,7 @@ inscreen from to i fromr tor =
 
 depth = 90
 
+renderScene :: WidgetClass widget => widget -> t -> IO Bool
 renderScene d ev = do
   dw    <- widgetGetDrawWindow d
   (w, h) <- widgetGetSize d
@@ -154,13 +117,13 @@ renderScene d ev = do
   pixels <- (pixbufGetPixels pb :: IO (PixbufData Int Word8))
   rowstride <- pixbufGetRowstride pb
   nChannels <- pixbufGetNChannels pb
-  let setPoint x y r g b =
+  let setPoint !x !y !r !g !b =
         do writeArray pixels p r
            writeArray pixels (p+1) g
            writeArray pixels (p+2) b
         where p = y * rowstride + x * nChannels
  
-  let ll= chunkedParallelMap 20 
+  parallelForM_0To w
           (\_x -> 
             forM_0To h
             (\_y -> 
@@ -173,9 +136,6 @@ renderScene d ev = do
                          setPoint _x _y 100 100 100
                        else
                          return ())))
-          [0..(w-1)]
-   
-  forM_ ll id
   
   drawPixbuf dw gc pb 0 0 0 0 w h RgbDitherNone 0 0
 
