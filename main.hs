@@ -69,11 +69,11 @@ myIterateUntil !pred !maxdepth !fn !start =
 
 -- Mandelbrot series
 
-pIter c z = z^2 + c
+pIter !c !z = z^2 + c
 
 -- and its presentation
 
-isDiverged x = (magnitudesquare x) > (1e10**2)
+isDiverged !x = (magnitudesquare x) > (1e10**2)
 
 mandelbrotDepth :: Int -> Complex Double -> Int
 mandelbrotDepth !maxdepth !p =
