@@ -42,10 +42,12 @@ parallelForM_0To !end !m =
 
 -- Complex numbers
 
+{-# INLINE magnitudesquare #-}
 magnitudesquare !(r :+ i) = r*r + i*i
 
 -- my own
 
+{-# INLINE myIterateUntil #-}
 myIterateUntil :: (Show a) => (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
 myIterateUntil !pred !maxdepth !fn !start = 
   iter maxdepth start
@@ -57,10 +59,12 @@ myIterateUntil !pred !maxdepth !fn !start =
 
 -- Mandelbrot series
 
+{-# INLINE pIter #-}
 pIter !c !z = z^2 + c
 
 -- and its presentation
 
+{-# INLINE isDiverged #-}
 isDiverged !x = (magnitudesquare x) > (1e10**2)
 
 mandelbrotDepth :: Int -> Complex Double -> Int
