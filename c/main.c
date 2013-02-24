@@ -106,11 +106,9 @@ setPoint(struct pb_context* ctx,
 
 int depth = 200;
 
-GtkWidget *__HACK_drawing;
-
 int
 renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
-    GtkWidget *dw= __HACK_drawing;
+    GtkWidget *dw= gtk_widget_get_window(d);
     gint w,h;
     w=200; h=200; //XXX gtk_window_get_size(d, &w, &h);
     
@@ -183,7 +181,6 @@ main ( int   argc,
     drawing= gtk_drawing_area_new();
     assert(window);
     assert(drawing);
-    __HACK_drawing= drawing;
     gtk_window_set_title(window, "Mandelbrot");
     gtk_container_add (GTK_CONTAINER (window), drawing);
     {
