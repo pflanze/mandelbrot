@@ -62,7 +62,7 @@ myIterateUntil :: (Show a) => (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
 myIterateUntil !pred !maxdepth !fn !start = 
   iter maxdepth start
   where iter !0 !z = (maxdepth, z)
-        iter !d !z = if notrace ((show d) ++ " -- " ++ (show z)) pred z then
+        iter !d !z = if pred z then
                      (maxdepth-d,z)
                    else
                      iter (d-1) (fn z)
@@ -131,9 +131,8 @@ renderScene d ev = do
                    y = inscreen 0 h _y (-1.0) 1.0
                    d = mandelbrotDepth depth (x :+ y)
                in
-                notrace ((show depth)++"--("++(show x)++";"++(show y)++") "++(show d)) 
-                (let l :: Word8 = fromIntegral (d * 255 `div` depth) in
-                  setPoint _x _y l l l )))
+                let l :: Word8 = fromIntegral (d * 255 `div` depth) in
+                  setPoint _x _y l l l ))
   
   drawPixbuf dw gc pb 0 0 0 0 w h RgbDitherNone 0 0
 
