@@ -1,98 +1,193 @@
+#include <unistd.h>
+
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
 
-/* This is a callback function. The data arguments are ignored
- * in this example. More on callbacks below. */
-static void hello( GtkWidget *widget,
-                   gpointer   data )
-{
-    g_print ("Hello World\n");
+
+struct complex_double {
+    double r;
+    double i;
+};
+typedef struct complex_double complex_double; // bad?
+
+// myIterateUntil :: (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
+// but (Int, a) is passed as *res, *z; *z doubling as start value
+#define ITERATE_UNTIL(res, pred, maxdepth, fn, fn_first_arg, z)	\
+    {								\
+    int __d= maxdepth;						\
+    while (1) {							\
+        if (__d == 0) { res= maxdepth; break; }			\
+	if (pred(&z)) { res= maxdepth-__d; break; }		\
+	__d--; fn(&z, fn_first_arg, &z);			\
+    }								\
+    }
+
+
+void
+magnitudesquare (double*res, complex_double*x) {
+    double r= x->r;
+    double i= x->i;
+    *res= r*r + i*i;
 }
 
-static gboolean delete_event( GtkWidget *widget,
-                              GdkEvent  *event,
-                              gpointer   data )
-{
-    /* If you return FALSE in the "delete-event" signal handler,
-     * GTK will emit the "destroy" signal. Returning TRUE means
-     * you don't want the window to be destroyed.
-     * This is useful for popping up 'are you sure you want to quit?'
-     * type dialogs. */
-
-    g_print ("delete event occurred\n");
-
-    /* Change TRUE to FALSE and the main window will be destroyed with
-     * a "delete-event". */
-
-    return TRUE;
+void
+complex_double_square(complex_double*res, complex_double*x) {
+    double r= x->r;
+    double i= x->i;
+    res->r = r*r - i*i;
+    res->i = 2*r*i;
 }
 
-/* Another callback */
-static void destroy( GtkWidget *widget,
-                     gpointer   data )
-{
-    gtk_main_quit ();
+void
+complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
+    res->r = a->r + b->r;
+    res->i = a->i + b->i;
 }
 
-int main( int   argc,
-          char *argv[] )
-{
-    /* GtkWidget is the storage type for widgets */
-    GtkWidget *window;
-    GtkWidget *button;
-    
-    /* This is called in all GTK applications. Arguments are parsed
-     * from the command line and are returned to the application. */
-    gtk_init (&argc, &argv);
-    
-    /* create a new window */
-    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    
-    /* When the window is given the "delete-event" signal (this is given
-     * by the window manager, usually by the "close" option, or on the
-     * titlebar), we ask it to call the delete_event () function
-     * as defined above. The data passed to the callback
-     * function is NULL and is ignored in the callback function. */
-    g_signal_connect (window, "delete-event",
-		      G_CALLBACK (delete_event), NULL);
-    
-    /* Here we connect the "destroy" event to a signal handler.  
-     * This event occurs when we call gtk_widget_destroy() on the window,
-     * or if we return FALSE in the "delete-event" callback. */
-    g_signal_connect (window, "destroy",
-		      G_CALLBACK (destroy), NULL);
-    
-    /* Sets the border width of the window. */
-    gtk_container_set_border_width (GTK_CONTAINER (window), 10);
-    
-    /* Creates a new button with the label "Hello World". */
-    button = gtk_button_new_with_label ("Hello World");
-    
-    /* When the button receives the "clicked" signal, it will call the
-     * function hello() passing it NULL as its argument.  The hello()
-     * function is defined above. */
-    g_signal_connect (button, "clicked",
-		      G_CALLBACK (hello), NULL);
-    
-    /* This will cause the window to be destroyed by calling
-     * gtk_widget_destroy(window) when "clicked".  Again, the destroy
-     * signal could come from here, or the window manager. */
-    g_signal_connect_swapped (button, "clicked",
-			      G_CALLBACK (gtk_widget_destroy),
-                              window);
-    
-    /* This packs the button into the window (a gtk container). */
-    gtk_container_add (GTK_CONTAINER (window), button);
-    
-    /* The final step is to display this newly created widget. */
-    gtk_widget_show (button);
-    
-    /* and the window */
-    gtk_widget_show (window);
-    
-    /* All GTK applications must have a gtk_main(). Control ends here
-     * and waits for an event to occur (like a key press or
-     * mouse event). */
-    gtk_main ();
-    
+//-- Mandelbrot series
+
+void
+pIter(complex_double*res, complex_double*c, complex_double*z) {
+    complex_double_square(res, z);
+    complex_double_add(res, res, c);
+}
+
+//-- and its presentation
+
+// isDiverged !x = (magnitudesquare x) > (1e10**2)
+int
+isDiverged(complex_double*x) {
+    double tmp;
+    magnitudesquare(&tmp, x);
+    return (tmp > 1e20);
+}
+
+int
+mandelbrotDepth(int maxdepth, complex_double*p) {
+    int res;
+    complex_double zero= { 0.0, 0.0 };
+    ITERATE_UNTIL(res, isDiverged, maxdepth, pIter, p, zero);
+    return res;
+}
+
+double
+inscreen (int from, int to, int i, double fromr, double tor) {
+    double idiff= (i - from);
+    double ddiff= (to - from);
+    return fromr + (tor - fromr) * idiff / ddiff;
+}
+
+struct pb_context {
+    guchar *pixels;
+    int rowstride;
+    int nChannels;
+};
+
+void
+pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
+    ctx->pixels= gdk_pixbuf_get_pixels(pb);
+    ctx->rowstride= gdk_pixbuf_get_rowstride(pb);
+    ctx->nChannels= gdk_pixbuf_get_n_channels(pb);
+}
+
+
+void
+setPoint(struct pb_context* ctx,
+	 int x, int y, int r, int g, int b) {
+    guchar *pixels= ctx->pixels;
+    int p = y * ctx->rowstride + x * ctx->nChannels;
+    pixels[p] = r;
+    pixels[p+1] = g;
+    pixels[p+2] = b;
+}
+
+
+int depth = 200;
+
+GtkWidget *__HACK_drawing;
+
+int
+renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
+    GtkWidget *dw= __HACK_drawing;
+    gint w,h;
+    gtk_window_get_size(d, &w, &h);
+    // what is gc for, if never changed???      gc     <- gcNew dw
+    //-- pixbuf
+    {
+	GdkPixbuf *pb= gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8, w, h);
+	{
+	    int _x, _y;
+	    struct pb_context ctx;
+	    pb_get_context(&ctx, pb);
+	    for (_x=0; _x<w; _x++) {
+		for (_y=0; _y<h; _y++) {
+		    complex_double p;
+		    p.r= inscreen(0,w,_x,-2.0,1.0);
+		    p.i= inscreen(0,h,_y,-1.0,1.0);
+		    {
+			int d= mandelbrotDepth(depth, &p);
+			unsigned char l= d * 255 / depth;
+			setPoint(&ctx, _x, _y, l,l,l);
+		    }
+		}
+	    }
+	}
+	gdk_draw_pixbuf(dw, NULL, pb, 0, 0, 0, 0, w, h, GDK_RGB_DITHER_NONE,0,0);
+    }
     return 0;
 }
+
+
+// ----- Gtk wrappers
+
+void
+onExpose(GtkWidget *drawing,
+	 int(proc)(GtkWidget *d, GdkEventExpose *ev, gpointer data)) {
+    g_signal_connect(drawing, "expose-event",
+		     G_CALLBACK(proc), NULL);
+}
+
+void
+onDestroy(GtkWidget *window, // ?
+	  /* eh odd: different than above (how would that work without
+	     casting?), but that's what the hello world example
+	     uses: */
+	  int(proc)(GtkWidget *d, gpointer data)) {
+    g_signal_connect(window, "destroy",
+		     G_CALLBACK(proc), NULL);
+}
+
+int
+mainQuit (GtkWidget *window, gpointer data) {
+    // what is mainQuit from haskell lib doing?
+    exit(0); // well.
+}
+
+// -----
+
+
+int
+main ( int   argc,
+       char *argv[] ) {
+    GtkWidget *window;
+    GtkWidget *drawing;
+    gtk_init (&argc, &argv); // initGUI();
+    window= gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    drawing= gtk_drawing_area_new();
+    __HACK_drawing= drawing;
+    gtk_window_set_title(window, "Mandelbrot");
+    gtk_container_add (GTK_CONTAINER (window), drawing);
+    /* widgetModifyBg drawing StateNormal bg */
+    onExpose(drawing, renderScene); /* onExpose drawing (renderScene drawing) */
+    onDestroy(window, mainQuit); /* onDestroy window mainQuit */
+    gtk_window_set_default_size(window, 800, 600); /* windowSetDefaultSize window 800 600 */
+    gtk_window_set_position(window, GTK_WIN_POS_CENTER); /* windowSetPosition window WinPosCenter */
+    /* widgetShowAll window */ //hmm don't have?
+    gtk_widget_show(drawing);
+    gtk_widget_show(window);
+    gtk_main(); /* mainGUI */
+
+    return 0;
+}
+
+
