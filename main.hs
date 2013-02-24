@@ -27,15 +27,14 @@ import Control.Applicative
 
 forM_0To :: Int -> (Int -> IO b) -> IO ()
 forM_0To !end !m = for 0
-  where for i = 
+  where for !i = 
           if i < end then
             do m i
                for (i+1)
           else
             return ()
 
--- 'totally unsafe' parallel undeterministic execution of m in
--- parallel. Good or horrible idea?
+-- CAREFUL: undeterministic execution of m in parallel. 
 parallelForM_0To :: Int -> (Int -> IO b) -> IO ()
 parallelForM_0To !end !m = 
   do ids <- generateM end (\i -> async $ m i)
@@ -113,7 +112,7 @@ main = do
   initGUI
   window  <- windowNew
   drawing <- drawingAreaNew
-  windowSetTitle window "Cells"
+  windowSetTitle window "Mandelbrot"
   containerAdd window drawing
   let bg = Color (65535 * 0)
                  (65535 * 205)
