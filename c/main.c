@@ -110,13 +110,29 @@ int
 renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     GtkWidget *dw= gtk_widget_get_window(d);
     gint w,h;
-    w=200; h=200; //XXX gtk_window_get_size(d, &w, &h);
-    
-    // what is gc for, if never changed???      gc     <- gcNew dw
-    //-- pixbuf
     assert(dw);
-    assert(w>0);
-    assert(h>0);
+    //gtk_window_get_size(dw, &w, &h); // XXX should be d ?
+    //gtk_widget_size_request(d, &w, &h);
+    /* gtk_window_get_size(dw, &w, &h);//UWHYNOT */
+    
+    /* // what is gc for, if never changed???      gc     <- gcNew dw */
+    /* //-- pixbuf */
+    /* assert(w>0); */
+    /* assert(h>0); */
+    /* // WTH. 256 times bigger than anticipated  wth. exact. wth.wll. */
+    /* w= w/256; */
+    /* h= h/256; */
+    /* assert(w>0); */
+    /* assert(h>0); */
+    /* // AND W T HELL  swapped   why   doc is as above  wt . */
+    /* { */
+    /* 	gint tmp=w; */
+    /* 	w=h; */
+    /* 	h=tmp; */
+    /* } */
+    w=800;
+    h=600;
+	
     {
 	GdkPixbuf *pb= gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8, w, h);
 	assert(pb);
