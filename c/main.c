@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
@@ -185,7 +186,16 @@ main ( int   argc,
     __HACK_drawing= drawing;
     gtk_window_set_title(window, "Mandelbrot");
     gtk_container_add (GTK_CONTAINER (window), drawing);
-    /* widgetModifyBg drawing StateNormal bg */
+    {
+	/* widgetModifyBg drawing StateNormal bg */
+	GdkColor bg= {
+	    0,
+	    0,
+	    0,
+	    0
+	};
+	gtk_widget_modify_bg(drawing, GTK_STATE_NORMAL, &bg); 
+    }
     onExpose(drawing, renderScene); /* onExpose drawing (renderScene drawing) */
     onDestroy(window, mainQuit); /* onDestroy window mainQuit */
     gtk_window_set_default_size(window, 800, 600); /* windowSetDefaultSize window 800 600 */
