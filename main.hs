@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, BangPatterns #-}
+{-# LANGUAGE FlexibleInstances, BangPatterns, ScopedTypeVariables #-}
 
 module Main where
 
@@ -132,10 +132,8 @@ renderScene d ev = do
                    d = mandelbrotDepth depth (x :+ y)
                in
                 notrace ((show depth)++"--("++(show x)++";"++(show y)++") "++(show d)) 
-                      (if d == depth then
-                         setPoint _x _y 100 100 100
-                       else
-                         return ())))
+                (let l :: Word8 = fromIntegral (d * 255 `div` depth) in
+                  setPoint _x _y l l l )))
   
   drawPixbuf dw gc pb 0 0 0 0 w h RgbDitherNone 0 0
 
