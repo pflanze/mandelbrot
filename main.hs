@@ -59,10 +59,10 @@ magnitudesquare (r :+ i) = r*r + i*i
 -- my own
 
 myIterateUntil :: (Show a) => (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
-myIterateUntil pred maxdepth fn start = 
+myIterateUntil !pred !maxdepth !fn !start = 
   iter maxdepth start
-  where iter 0 z = (maxdepth, z)
-        iter d z = if notrace ((show d) ++ " -- " ++ (show z)) pred z then
+  where iter !0 !z = (maxdepth, z)
+        iter !d !z = if notrace ((show d) ++ " -- " ++ (show z)) pred z then
                      (maxdepth-d,z)
                    else
                      iter (d-1) (fn z)
@@ -76,7 +76,7 @@ pIter c z = z^2 + c
 isDiverged x = (magnitudesquare x) > (1e10**2)
 
 mandelbrotDepth :: Int -> Complex Double -> Int
-mandelbrotDepth maxdepth p =
+mandelbrotDepth !maxdepth !p =
   fst $ myIterateUntil isDiverged maxdepth (pIter p) (0 :+ 0)
 
 -- OLD
