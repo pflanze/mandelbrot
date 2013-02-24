@@ -105,7 +105,7 @@ inscreen from to i fromr tor =
   fromr + (tor - fromr) * (fromIntegral (i - from)) / (fromIntegral (to - from))
 
 
-depth = 90
+depth = 200
 
 renderScene :: WidgetClass widget => widget -> t -> IO Bool
 renderScene d ev = do
