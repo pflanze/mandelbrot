@@ -5,6 +5,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
 
+#define STATIC static
 
 struct complex_double {
     double r;
@@ -25,14 +26,14 @@ typedef struct complex_double complex_double; // bad?
     }
 
 
-void
+STATIC void
 magnitudesquare (double*res, complex_double*x) {
     double r= x->r;
     double i= x->i;
     *res= r*r + i*i;
 }
 
-void
+STATIC void
 complex_double_square(complex_double*res, complex_double*x) {
     double r= x->r;
     double i= x->i;
@@ -40,7 +41,7 @@ complex_double_square(complex_double*res, complex_double*x) {
     res->i = 2*r*i;
 }
 
-void
+STATIC void
 complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
     res->r = a->r + b->r;
     res->i = a->i + b->i;
@@ -48,7 +49,7 @@ complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
 
 //-- Mandelbrot series
 
-void
+STATIC void
 pIter(complex_double*res, complex_double*c, complex_double*z) {
     complex_double_square(res, z);
     complex_double_add(res, res, c);
@@ -57,14 +58,14 @@ pIter(complex_double*res, complex_double*c, complex_double*z) {
 //-- and its presentation
 
 // isDiverged !x = (magnitudesquare x) > (1e10**2)
-int
+STATIC int
 isDiverged(complex_double*x) {
     double tmp;
     magnitudesquare(&tmp, x);
     return (tmp > 1e20);
 }
 
-int
+STATIC int
 mandelbrotDepth(int maxdepth, complex_double*p) {
     int res;
     complex_double zero= { 0.0, 0.0 };
@@ -72,7 +73,7 @@ mandelbrotDepth(int maxdepth, complex_double*p) {
     return res;
 }
 
-double
+STATIC double
 inscreen (int from, int to, int i, double fromr, double tor) {
     double idiff= (i - from);
     double ddiff= (to - from);
@@ -85,7 +86,7 @@ struct pb_context {
     int nChannels;
 };
 
-void
+STATIC void
 pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
     ctx->pixels= gdk_pixbuf_get_pixels(pb);
     ctx->rowstride= gdk_pixbuf_get_rowstride(pb);
@@ -93,7 +94,7 @@ pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
 }
 
 
-void
+STATIC void
 setPoint(struct pb_context* ctx,
 	 int x, int y, int r, int g, int b) {
     guchar *pixels= ctx->pixels;
@@ -106,7 +107,7 @@ setPoint(struct pb_context* ctx,
 
 int depth = 200;
 
-int
+STATIC int
 renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     GtkWidget *dw= gtk_widget_get_window(d);
     gint w,h;
