@@ -46,9 +46,13 @@ magnitudesquare (double*res, complex_double*x) {
 
 STATIC void
 complex_double_square(complex_double*res, complex_double*x) {
+    v2_double *xv= CAST(v2_double*,x);
     double r= x->r;
     double i= x->i;
-    res->r = r*r - i*i;
+    {
+	v2_double xv2 = *xv * *xv;
+	res->r = Cr(xv2) - Ci(xv2);
+    }
     res->i = 2*r*i;
 }
 
