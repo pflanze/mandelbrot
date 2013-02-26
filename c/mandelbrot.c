@@ -56,10 +56,14 @@ complex_double_square(complex_double*res, complex_double*x) {
     res->i = 2*r*i;
 }
 
+#define V2(var) v2_double *v##var= CAST(v2_double*,var)
+
 STATIC void
 complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
-    res->r = a->r + b->r;
-    res->i = a->i + b->i;
+    V2(a);
+    V2(b);
+    V2(res);
+    *vres= *va + *vb;
 }
 
 //-- Mandelbrot series
