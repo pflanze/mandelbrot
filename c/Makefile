@@ -1,11 +1,13 @@
 
-CCFLAGS=-pthread `pkg-config --cflags gtk+-2.0` `pkg-config --libs gtk+-2.0`
+CCFLAGS=-pthread `pkg-config --cflags gtk+-2.0`
+LDFLAGS=`pkg-config --libs gtk+-2.0` -lrt
 
-main: main.c
-	gcc -Wall -g -o main main.c $(CCFLAGS)
 
-opt: main.c
-	gcc -Wall -g -O3 -o opt main.c $(CCFLAGS)
+main: main.c nstime.c
+	gcc -Wall -g -o main main.c $(CCFLAGS) $(LDFLAGS)
+
+opt: main.c nstime.c
+	gcc -Wall -g -O3 -o opt main.c $(CCFLAGS) $(LDFLAGS)
 
 clean:
 	rm -f main opt

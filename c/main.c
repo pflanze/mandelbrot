@@ -139,8 +139,13 @@ renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     h=600;
 	
     {
+	struct nstime t0,t1;
 	GdkPixbuf *pb= gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8, w, h);
 	assert(pb);
+	nstime_init(&t0);
+	nstime_init(&t1);
+	x_nstime_print_resolution(&t0);
+	x_nstime_gettime(&t0);
 	{
 	    int _x, _y;
 	    struct pb_context ctx;
@@ -158,6 +163,8 @@ renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
 		}
 	    }
 	}
+	x_nstime_gettime(&t1);
+	x_nstime_print_diff(&t0,&t1);
 	gdk_draw_pixbuf(dw, NULL, pb, 0, 0, 0, 0, w, h, GDK_RGB_DITHER_NONE,0,0);
     }
     return 0;

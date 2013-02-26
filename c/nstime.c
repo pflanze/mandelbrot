@@ -12,6 +12,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h> /* abort */
+#include <assert.h>
 
 #define XNSTIME(expr) { int ___err= expr; if (___err) { perror(#expr); abort(); }}
 
@@ -23,7 +24,7 @@ struct nstime {
 
 STATIC void
 nstime_init(struct nstime* t) {
-    t->clkid= 0; /* XXX what should this be? man page doesn't say, sigh */
+    t->clkid= CLOCK_MONOTONIC_RAW; /* XX hm? */
 }
 
 void
@@ -45,8 +46,11 @@ x_nstime(struct nstime *res) {
 
 STATIC void
 nstime_diff(struct timespec *res, struct nstime *a, struct nstime *b) {
-    res->tv_sec = b->ts.tv_sec - a->ts.tv_sec;
-    res->tv_nsec = b->ts.tv_nsec - a->ts.tv_nsec;
+    long ndiff;
+    assert(a->clkid == b->clkid);
+    ndiff = b->ts.tv_nsec - a->ts.tv_nsec;
+    res->tv_sec = b->ts.tv_sec - a->ts.tv_sec + (ndiff < 0 ? -1 : 0);
+    res->tv_nsec = (ndiff < 0 ? ndiff + 1000000000 : ndiff);
 }
 
 
@@ -54,6 +58,12 @@ void
 x_nstime_print_resolution (struct nstime *t) {
     struct timespec r;
     XNSTIME(clock_getres(t->clkid, &r));
-    printf("nstime resolution: %ld.%9ld seconds\n", r.tv_sec, r.tv_nsec);
+    printf("nstime resolution: %ld.%09ld seconds\n", r.tv_sec, r.tv_nsec);
 }
 
+void
+x_nstime_print_diff(struct nstime *t0, struct nstime *t1) {
+    struct timespec r;
+    nstime_diff(&r, t0, t1);
+    printf("nstime diff: %ld.%09ld seconds\n", r.tv_sec, r.tv_nsec);
+}
