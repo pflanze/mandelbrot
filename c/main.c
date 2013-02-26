@@ -5,7 +5,11 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
 
+
 #define STATIC static
+
+#include "nstime.c"
+
 
 struct complex_double {
     double r;
