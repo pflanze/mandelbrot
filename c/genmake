@@ -1,0 +1,48 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+sub gen {
+    my ($dir,$opt)=@_;
+    mkdir $dir;
+    my $file= "$dir/Makefile";
+    open my $out, ">", $file
+      or die "'$file': $!";
+    print $out qq{
+CC=gcc
+CFLAGS=}.$opt.q{-Wall -g -pthread `pkg-config --cflags gtk+-2.0`
+LDFLAGS=`pkg-config --libs gtk+-2.0` -lrt
+VPATH=..
+#LD=gcc  hm how to specify cc for linking?
+
+objects= nstime.o mandelbrot.o main.o
+
+
+all: main
+
+
+nstime.o: nstime.c nstime.h
+
+mandelbrot.o: mandelbrot.c mandelbrot.h nstime.h
+
+main.o: main.c mandelbrot.h
+
+
+main: $(objects)
+	cc -o main $(objects) $(LDFLAGS)
+
+run: main
+	bash -c 'time ./main'
+
+
+.PHONY: clean
+clean:
+	rm -f main $(objects)
+
+} or die $!;
+    close $out or die $!;
+}
+
+@ARGV==2 or die "usage: $0 dirpath optstr";
+
+gen(@ARGV);
