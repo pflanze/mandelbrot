@@ -10,7 +10,7 @@ sub gen {
       or die "'$file': $!";
     print $out qq{
 CC=gcc
-CFLAGS=}.$opt.q{-Wall -g -pthread `pkg-config --cflags gtk+-2.0`
+CFLAGS=}.$opt.q{-Wall -Wvector-operation-performance -g -pthread `pkg-config --cflags gtk+-2.0`
 LDFLAGS=`pkg-config --libs gtk+-2.0` -lrt
 VPATH=..
 #LD=gcc  hm how to specify cc for linking?
