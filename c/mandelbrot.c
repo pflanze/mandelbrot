@@ -7,6 +7,14 @@
 
 #define STATIC static
 
+#define CAST(to,expr) (to)(expr)
+
+// for SIMD:
+typedef double v2_double __attribute__ ((vector_size (16)));
+
+#define Cr(x) x[0]
+#define Ci(x) x[1]
+// SIMD
 
 
 struct complex_double {
@@ -30,9 +38,10 @@ typedef struct complex_double complex_double; // bad?
 
 STATIC void
 magnitudesquare (double*res, complex_double*x) {
-    double r= x->r;
-    double i= x->i;
-    *res= r*r + i*i;
+    // *res= r*r + i*i;
+    v2_double *xv= CAST(v2_double*,x);
+    v2_double xv2 = *xv * *xv;
+    *res= Cr(xv2) + Ci(xv2);
 }
 
 STATIC void
