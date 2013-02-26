@@ -8,41 +8,40 @@
   Link with -lrt.
 */
 
+#include "nstime.h"
 
-#include <time.h>
 #include <stdio.h>
 #include <stdlib.h> /* abort */
 #include <assert.h>
 
 #define XNSTIME(expr) { int ___err= expr; if (___err) { perror(#expr); abort(); }}
 
+#define STATIC static
 
-struct nstime {
-    clockid_t clkid;
-    struct timespec ts;
-};
-
-STATIC void
+void
 nstime_init(struct nstime* t) {
     t->clkid= CLOCK_MONOTONIC_RAW; /* XX hm? */
 }
 
-void
+/*
+STATIC void
 x_nstime_getres(struct nstime* t) {
     XNSTIME(clock_getres(t->clkid, &(t->ts)));
 }
+*/
 
-STATIC void
+void
 x_nstime_gettime(struct nstime* t) {
     XNSTIME(clock_gettime(t->clkid, &(t->ts)));
 }
 
-
+/*
 STATIC void
 x_nstime(struct nstime *res) {
     nstime_init(res);
     x_nstime_gettime(res);
 }
+*/
 
 STATIC void
 nstime_diff(struct timespec *res, struct nstime *a, struct nstime *b) {

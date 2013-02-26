@@ -2,93 +2,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#define STATIC static
+
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gtk/gtk.h>
 
-
-#define STATIC static
-
-#include "nstime.c"
-
-
-struct complex_double {
-    double r;
-    double i;
-};
-typedef struct complex_double complex_double; // bad?
-
-// myIterateUntil :: (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
-// but (Int, a) is passed as *res, *z; *z doubling as start value
-#define ITERATE_UNTIL(res, pred, maxdepth, fn, fn_first_arg, z)	\
-    {								\
-    int __d= maxdepth;						\
-    while (1) {							\
-        if (__d == 0) { res= maxdepth; break; }			\
-	if (pred(&z)) { res= maxdepth-__d; break; }		\
-	__d--; fn(&z, fn_first_arg, &z);			\
-    }								\
-    }
-
-
-STATIC void
-magnitudesquare (double*res, complex_double*x) {
-    double r= x->r;
-    double i= x->i;
-    *res= r*r + i*i;
-}
-
-STATIC void
-complex_double_square(complex_double*res, complex_double*x) {
-    double r= x->r;
-    double i= x->i;
-    res->r = r*r - i*i;
-    res->i = 2*r*i;
-}
-
-STATIC void
-complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
-    res->r = a->r + b->r;
-    res->i = a->i + b->i;
-}
-
-//-- Mandelbrot series
-
-STATIC void
-pIter(complex_double*res, complex_double*c, complex_double*z) {
-    complex_double_square(res, z);
-    complex_double_add(res, res, c);
-}
-
-//-- and its presentation
-
-// isDiverged !x = (magnitudesquare x) > (1e10**2)
-STATIC int
-isDiverged(complex_double*x) {
-    double tmp;
-    magnitudesquare(&tmp, x);
-    return (tmp > 1e20);
-}
-
-STATIC int
-mandelbrotDepth(int maxdepth, complex_double*p) {
-    int res;
-    complex_double zero= { 0.0, 0.0 };
-    ITERATE_UNTIL(res, isDiverged, maxdepth, pIter, p, zero);
-    return res;
-}
-
-STATIC double
-inscreen (int from, int to, int i, double fromr, double tor) {
-    double idiff= (i - from);
-    double ddiff= (to - from);
-    return fromr + (tor - fromr) * idiff / ddiff;
-}
-
-struct pb_context {
-    guchar *pixels;
-    int rowstride;
-    int nChannels;
-};
+#include "mandelbrot.h"
 
 STATIC void
 pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
@@ -97,19 +16,6 @@ pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
     ctx->nChannels= gdk_pixbuf_get_n_channels(pb);
 }
 
-
-STATIC void
-setPoint(struct pb_context* ctx,
-	 int x, int y, int r, int g, int b) {
-    guchar *pixels= ctx->pixels;
-    int p = y * ctx->rowstride + x * ctx->nChannels;
-    pixels[p] = r;
-    pixels[p+1] = g;
-    pixels[p+2] = b;
-}
-
-
-int depth = 200;
 
 STATIC int
 renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
@@ -139,32 +45,13 @@ renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     h=600;
 	
     {
-	struct nstime t0,t1;
 	GdkPixbuf *pb= gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8, w, h);
 	assert(pb);
-	nstime_init(&t0);
-	nstime_init(&t1);
-	x_nstime_print_resolution(&t0);
-	x_nstime_gettime(&t0);
 	{
-	    int _x, _y;
 	    struct pb_context ctx;
 	    pb_get_context(&ctx, pb);
-	    for (_x=0; _x<w; _x++) {
-		for (_y=0; _y<h; _y++) {
-		    complex_double p;
-		    p.r= inscreen(0,w,_x,-2.0,1.0);
-		    p.i= inscreen(0,h,_y,-1.0,1.0);
-		    {
-			int d= mandelbrotDepth(depth, &p);
-			unsigned char l= d * 255 / depth;
-			setPoint(&ctx, _x, _y, l,l,l);
-		    }
-		}
-	    }
+	    mandelbrot_render(&ctx, w, h);
 	}
-	x_nstime_gettime(&t1);
-	x_nstime_print_diff(&t0,&t1);
 	gdk_draw_pixbuf(dw, NULL, pb, 0, 0, 0, 0, w, h, GDK_RGB_DITHER_NONE,0,0);
     }
     return 0;
