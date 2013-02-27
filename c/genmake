@@ -23,7 +23,7 @@ all: main
 
 nstime.o: nstime.c nstime.h
 
-mandelbrot.o: mandelbrot.c mandelbrot.h nstime.h
+mandelbrot.o: mandelbrot.c mandelbrot.h nstime.h util.h
 
 main.o: main.c mandelbrot.h
 

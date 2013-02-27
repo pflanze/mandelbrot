@@ -5,6 +5,8 @@
 #include "nstime.h"
 #include "mandelbrot.h"
 
+#include "util.h"
+
 #define STATIC static
 
 #define CAST(to,expr) (to)(expr)
