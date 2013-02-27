@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "nstime.h"
 #include "mandelbrot.h"
@@ -111,24 +112,38 @@ setPoint(struct pb_context* ctx,
     pixels[p+2] = b;
 }
 
-STATIC
-int depth = 200;
-
 void
-mandelbrot_render(struct pb_context *ctx, gint w, gint h) {
+mandelbrot_render(struct pb_context *ctx, gint w, gint h,
+		  double xcenter, double ycenter, double size, int depth) {
     struct nstime t0,t1;
     {
 	nstime_init(&t0);
 	nstime_init(&t1);
 	x_nstime_print_resolution(&t0);
 	x_nstime_gettime(&t0);
-	{    
+	{
+	    /* assuming square pixels */
+	    double aspect= CAST(double,h)/CAST(double,w);
+	    /* assume size is really width? */
+	    double width= size;
+	    double fromx= xcenter - width;
+	    double tox= xcenter + width;
+	    double height= width * aspect;
+	    double fromy= ycenter - height;
+	    double toy= ycenter + height;
+
+	    printf("  fromx=%.15lf\n",fromx);
+	    printf("    tox=%.15lf\n",tox);
+	    printf("  fromy=%.15lf\n",fromy);
+	    printf("    toy=%.15lf\n",toy);
+	    printf("  depth=%d\n",depth);
+	    
 	    int _x, _y;
 	    for (_x=0; _x<w; _x++) {
 		for (_y=0; _y<h; _y++) {
 		    complex_double p;
-		    p.r= inscreen(0,w,_x,-2.0,1.0);
-		    p.i= inscreen(0,h,_y,-1.0,1.0);
+		    p.r= inscreen(0,w,_x, fromx, tox);
+		    p.i= inscreen(0,h,_y, fromy, toy);
 		    {
 			int d= mandelbrotDepth(depth, &p);
 			unsigned char l= d * 255 / depth;

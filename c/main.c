@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define STATIC static
 
@@ -15,6 +16,12 @@ pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
     ctx->rowstride= gdk_pixbuf_get_rowstride(pb);
     ctx->nChannels= gdk_pixbuf_get_n_channels(pb);
 }
+
+
+STATIC double xcenter= 0.0;
+STATIC double ycenter= 0.0;
+STATIC double size= 2.0;
+STATIC int depth= 200;
 
 
 STATIC int
@@ -50,7 +57,7 @@ renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
 	{
 	    struct pb_context ctx;
 	    pb_get_context(&ctx, pb);
-	    mandelbrot_render(&ctx, w, h);
+	    mandelbrot_render(&ctx, w, h, xcenter, ycenter, size, depth);
 	}
 	gdk_draw_pixbuf(dw, NULL, pb, 0, 0, 0, 0, w, h, GDK_RGB_DITHER_NONE,0,0);
     }
@@ -89,34 +96,51 @@ mainQuit (GtkWidget *window, gpointer data) {
 int
 main ( int   argc,
        char *argv[] ) {
-    GtkWidget *window;
-    GtkWidget *drawing;
     gtk_init (&argc, &argv); // initGUI();
-    window= gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    drawing= gtk_drawing_area_new();
-    assert(window);
-    assert(drawing);
-    gtk_window_set_title(window, "Mandelbrot");
-    gtk_container_add (GTK_CONTAINER (window), drawing);
-    {
-	/* widgetModifyBg drawing StateNormal bg */
-	GdkColor bg= {
-	    0,
-	    0,
-	    0,
-	    0
-	};
-	gtk_widget_modify_bg(drawing, GTK_STATE_NORMAL, &bg); 
-    }
-    onExpose(drawing, renderScene); /* onExpose drawing (renderScene drawing) */
-    onDestroy(window, mainQuit); /* onDestroy window mainQuit */
-    gtk_window_set_default_size(window, 800, 600); /* windowSetDefaultSize window 800 600 */
-    gtk_window_set_position(window, GTK_WIN_POS_CENTER); /* windowSetPosition window WinPosCenter */
-    /* widgetShowAll window */ //hmm don't have?
-    gtk_widget_show(drawing);
-    gtk_widget_show(window);
-    gtk_main(); /* mainGUI */
 
+    if (argc==1) {
+	/* leave at defaults */
+    } else if (argc==5) {
+# define CHK(expr) if ((expr)!=1) { goto usage; }
+	CHK(sscanf(argv[1],"%lf",&xcenter));
+	CHK(sscanf(argv[2],"%lf",&ycenter));
+	CHK(sscanf(argv[3],"%lf",&size));
+	CHK(sscanf(argv[4],"%d",&depth));
+    } else {
+    usage:
+	printf("usage: %s [xcenter ycenter size depth]\n", argv[0]);
+	return 1;
+    }
+    printf("xcenter=%lf\n",xcenter);
+    printf("ycenter=%lf\n",ycenter);
+    printf("   size=%lf\n",size);
+    printf("  depth=%d\n",depth);
+    {
+	GtkWidget *window= gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	GtkWidget *drawing= gtk_drawing_area_new();
+	assert(window);
+	assert(drawing);
+	gtk_window_set_title(window, "Mandelbrot");
+	gtk_container_add (GTK_CONTAINER (window), drawing);
+	{
+	    /* widgetModifyBg drawing StateNormal bg */
+	    GdkColor bg= {
+		0,
+		0,
+		0,
+		0
+	    };
+	    gtk_widget_modify_bg(drawing, GTK_STATE_NORMAL, &bg); 
+	}
+	onExpose(drawing, renderScene); /* onExpose drawing (renderScene drawing) */
+	onDestroy(window, mainQuit); /* onDestroy window mainQuit */
+	gtk_window_set_default_size(window, 800, 600); /* windowSetDefaultSize window 800 600 */
+	gtk_window_set_position(window, GTK_WIN_POS_CENTER); /* windowSetPosition window WinPosCenter */
+	/* widgetShowAll window */ //hmm don't have?
+	gtk_widget_show(drawing);
+	gtk_widget_show(window);
+	gtk_main(); /* mainGUI */
+    }
     return 0;
 }
 

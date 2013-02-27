@@ -12,4 +12,5 @@ struct pb_context {
 
 
 void
-mandelbrot_render(struct pb_context *ctx, gint w, gint h);
+mandelbrot_render(struct pb_context *ctx, gint w, gint h,
+		  double xcenter, double ycenter, double size, int depth);
