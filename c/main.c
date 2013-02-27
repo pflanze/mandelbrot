@@ -10,6 +10,13 @@
 
 #include "mandelbrot.h"
 
+/* HACK to make it compile on Debian Lenny; XXX: does that override
+   the original gtk_widget_get_window in all cases now? */
+#ifndef gtk_widget_get_window
+#define gtk_widget_get_window(d) (d)->window
+#endif
+
+
 STATIC void
 pb_get_context(struct pb_context* ctx, GdkPixbuf *pb) {
     ctx->pixels= gdk_pixbuf_get_pixels(pb);

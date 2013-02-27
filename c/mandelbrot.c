@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// HACK, sgh, to avoid having to include all that stuff. ok?
+typedef int gint;
+typedef unsigned char guchar;
+
 #include "nstime.h"
 #include "mandelbrot.h"
 

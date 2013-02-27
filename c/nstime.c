@@ -14,6 +14,12 @@
 #include <stdlib.h> /* abort */
 #include <assert.h>
 
+/* HACK to make it compile on Debian Lenny */
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 0
+#endif
+
+
 #define XNSTIME(expr) { int ___err= expr; if (___err) { perror(#expr); abort(); }}
 
 #define STATIC static

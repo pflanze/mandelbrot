@@ -1,8 +1,4 @@
 
-// HACK, sgh, to avoid having to include all that stuff. ok?
-typedef int gint;
-typedef unsigned char guchar;
-
 
 struct pb_context {
     guchar *pixels;
