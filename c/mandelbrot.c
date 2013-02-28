@@ -14,12 +14,12 @@ typedef unsigned char guchar;
 
 #define STATIC static
 
-// for SIMD:
+#ifdef USE_SIMD
 typedef double v2_double __attribute__ ((vector_size (16)));
 
 #define Cr(x) x[0]
 #define Ci(x) x[1]
-// SIMD
+#endif
 
 
 struct complex_double {
@@ -43,32 +43,48 @@ typedef struct complex_double complex_double; // bad?
 
 STATIC void
 magnitudesquare (double*res, complex_double*x) {
-    // *res= r*r + i*i;
+#ifdef USE_SIMD
     v2_double *xv= CAST(v2_double*,x);
     v2_double xv2 = *xv * *xv;
     *res= Cr(xv2) + Ci(xv2);
+#else
+    double r= x->r;
+    double i= x->i;
+    *res= r*r + i*i;
+#endif
 }
 
 STATIC void
 complex_double_square(complex_double*res, complex_double*x) {
-    v2_double *xv= CAST(v2_double*,x);
     double r= x->r;
     double i= x->i;
+#ifdef USE_SIMD
+    v2_double *xv= CAST(v2_double*,x);
     {
 	v2_double xv2 = *xv * *xv;
 	res->r = Cr(xv2) - Ci(xv2);
     }
+#else
+    res->r = r*r - i*i;
+#endif
     res->i = 2*r*i;
 }
 
+#ifdef USE_SIMD
 #define V2(var) v2_double *v##var= CAST(v2_double*,var)
+#endif
 
 STATIC void
 complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
+#ifdef USE_SIMD
     V2(a);
     V2(b);
     V2(res);
     *vres= *va + *vb;
+#else
+    res->r = a->r + b->r;
+    res->i = a->i + b->i;
+#endif
 }
 
 //-- Mandelbrot series
