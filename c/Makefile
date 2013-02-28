@@ -10,6 +10,7 @@ all: opt default
 clean:
 	make -C .make clean
 	make -C .opt clean
+	rm -f .make/Makefile .opt/Makefile
 
 .make/Makefile: genmake
 	./genmake .make ""
