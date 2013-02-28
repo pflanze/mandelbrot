@@ -15,5 +15,5 @@ clean:
 	./genmake .make ""
 
 .opt/Makefile: genmake
-	./genmake .opt "-O3 "
+	./genmake .opt "-O3 -mtune=atom "
 
