@@ -16,5 +16,5 @@ clean:
 	./genmake .make ""
 
 .opt/Makefile: genmake Makefile
-	./genmake .opt "-O3 -mtune=atom "
+	./genmake .opt "-O3 -mtune=atom -msse2 -mfpmath=both -msseregparm "
 
