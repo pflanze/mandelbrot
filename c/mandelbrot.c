@@ -14,8 +14,6 @@ typedef unsigned char guchar;
 
 #define STATIC static
 
-#define CAST(to,expr) (to)(expr)
-
 // for SIMD:
 typedef double v2_double __attribute__ ((vector_size (16)));
 
