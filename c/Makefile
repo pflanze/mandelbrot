@@ -12,9 +12,9 @@ clean:
 	make -C .opt clean
 	rm -f .make/Makefile .opt/Makefile
 
-.make/Makefile: genmake
+.make/Makefile: genmake Makefile
 	./genmake .make ""
 
-.opt/Makefile: genmake
+.opt/Makefile: genmake Makefile
 	./genmake .opt "-O3 -mtune=atom "
 
