@@ -159,11 +159,11 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    int _x, _y;
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\
-    schedule(static,40)
+    schedule(static,15)
 	    for (_x=0; _x<w; _x++) {
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_y)			\
-    schedule(static,400)
+    schedule(static,1000)
 		for (_y=0; _y<h; _y++) {
 		    complex_double p;
 		    p.r= inscreen(0,w,_x, fromx, tox);
