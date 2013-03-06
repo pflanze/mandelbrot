@@ -157,6 +157,10 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    printf("  depth=%d\n",depth);
 	    
 	    int _x, _y;
+	    int chunk= 80; //
+	    #pragma omp parallel for \
+		shared(w,h,fromx,tox,fromy,toy) private(_x,_y) \
+		schedule(static,chunk)
 	    for (_x=0; _x<w; _x++) {
 		for (_y=0; _y<h; _y++) {
 		    complex_double p;
