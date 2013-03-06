@@ -1,8 +1,14 @@
 
 default: .make/Makefile
+	make -C .make
+
+run: .make/Makefile
 	make -C .make run
 
 opt: .opt/Makefile
+	make -C .opt
+
+optrun: .opt/Makefile
 	make -C .opt run
 
 all: opt default
