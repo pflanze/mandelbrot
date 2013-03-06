@@ -2,14 +2,4 @@
 .gitignore
 
 *.o
-*.o[1-9]
-*.o[1-9][0-9]
-
-*.hi
-a.out
-main
-ERR
-OUT
-main.hcr
-OUT.*
 

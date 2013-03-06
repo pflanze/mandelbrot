@@ -1,0 +1,8 @@
+*.hi
+a.out
+main
+ERR
+OUT
+main.hcr
+OUT.*
+
