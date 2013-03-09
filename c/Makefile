@@ -14,8 +14,8 @@ optrun: .opt/Makefile
 all: opt default
 
 clean:
-	make -C .make clean
-	make -C .opt clean
+	make -C .make clean || true
+	make -C .opt clean || true
 	rm -f .make/Makefile .opt/Makefile
 
 .make/Makefile: genmake Makefile
