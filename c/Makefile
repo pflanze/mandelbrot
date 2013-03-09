@@ -22,5 +22,5 @@ clean:
 	./genmake .make ""
 
 .opt/Makefile: genmake Makefile
-	./genmake .opt "-O3 -mtune=atom -msse2 -mfpmath=both -msseregparm -fomit-frame-pointer -funroll-loops -fprofile-use -fprofile-generate " "-fprofile-generate "
+	./genmake .opt "-O3 -mtune=atom -msse2 -mfpmath=both -msseregparm -fomit-frame-pointer -funroll-loops " " "
 
