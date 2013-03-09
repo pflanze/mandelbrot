@@ -94,7 +94,8 @@ onDestroy(GtkWidget *window, // ?
 int
 mainQuit (GtkWidget *window, gpointer data) {
     // what is mainQuit from haskell lib doing?
-    exit(0); // well.
+    gtk_main_quit();
+    return 0; //?
 }
 
 // -----
