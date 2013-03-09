@@ -3,7 +3,7 @@
 use strict;
 
 sub gen {
-    my ($dir,$opt)=@_;
+    my ($dir,$opt,$link)=@_;
     mkdir $dir;
     my $file= "$dir/Makefile";
     open my $out, ">", $file
@@ -11,7 +11,7 @@ sub gen {
     print $out qq{
 CC=gcc
 CFLAGS=}.$opt.q{-Wall -Wvector-operation-performance -g -pthread -fopenmp `pkg-config --cflags gtk+-2.0`
-LDFLAGS=`pkg-config --libs gtk+-2.0` -lrt -lgomp
+LDFLAGS=`pkg-config --libs gtk+-2.0` -lrt -lgomp }.$link.q{
 VPATH=..
 #LD=gcc  hm how to specify cc for linking?
 
@@ -43,6 +43,6 @@ clean:
     close $out or die $!;
 }
 
-@ARGV==2 or die "usage: $0 dirpath optstr";
+(@ARGV>=2 and @ARGV <= 3) or die "usage: $0 dirpath optstr [linkstr]";
 
 gen(@ARGV);
