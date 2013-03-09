@@ -21,11 +21,11 @@ objects= nstime.o mandelbrot.o main.o
 all: main
 
 
-nstime.o: nstime.c nstime.h
+nstime.o: nstime.c nstime.h Makefile
 
-mandelbrot.o: mandelbrot.c mandelbrot.h nstime.h util.h
+mandelbrot.o: mandelbrot.c mandelbrot.h nstime.h util.h Makefile
 
-main.o: main.c mandelbrot.h
+main.o: main.c mandelbrot.h Makefile
 
 
 main: $(objects)
