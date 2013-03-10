@@ -10,6 +10,8 @@ import Data.Word (Word8)
 import Data.Array.MArray --writeArray
 import Data.Vector (generateM, forM_) -- .Unboxed
 
+import Data.Array.Repa                          as R
+
 import Control.Monad
 --import Control.Concurrent
 import Control.Concurrent.Async
@@ -78,17 +80,47 @@ inscreen from to i fromr tor =
 
 
 depth = 200
+xfrom = (-2.0)
+xto = 1.0
+yfrom = (-1.0)
+yto = 1.0
+
+
+mandelbrotInscreen w h xfrom xto yfrom yto f (Z :. _x :. _y) = 
+  let x = inscreen 0 w _x xfrom xto
+      y = inscreen 0 h _y yfrom yto
+      d = mandelbrotDepth depth (x :+ y)
+  in
+   let l :: Word8 = fromIntegral (d * 255 `div` depth) in
+     l
+
+
+calcMandelbrot w h =
+  -- calculate
+  let shape = Z :. w :. h -- :: (Shape Int Int)
+      fakeinput = fromFunction shape (\_ -> 0 :: Word8)
+      result = 
+        --- XXX computeP $ 
+        traverse fakeinput id (mandelbrotInscreen w h xfrom xto yfrom yto)
+  in
+   result
+
 
 renderScene :: WidgetClass widget => widget -> t -> IO Bool
 renderScene d ev = do
   dw    <- widgetGetDrawWindow d
   (w, h) <- widgetGetSize d
   gc     <- gcNew dw
+  
+  
+  -- copy into bitmap
   -- pixbuf
   pb <- pixbufNew ColorspaceRgb False 8 w h
   pixels <- (pixbufGetPixels pb :: IO (PixbufData Int Word8))
   rowstride <- pixbufGetRowstride pb
   nChannels <- pixbufGetNChannels pb
+  
+  let result = computeP $ calcMandelbrot 10 20 
   
   let setPoint !x !y !r !g !b =
         do writeArray pixels p r
@@ -96,16 +128,12 @@ renderScene d ev = do
            writeArray pixels (p+2) b
         where p = y * rowstride + x * nChannels
  
-  parallelForM_0To w
-          (\_x -> 
-            forM_0To h
-            (\_y -> 
-               let x = inscreen 0 w _x (-2.0) 1.0
-                   y = inscreen 0 h _y (-1.0) 1.0
-                   d = mandelbrotDepth depth (x :+ y)
-               in
-                let l :: Word8 = fromIntegral (d * 255 `div` depth) in
-                  setPoint _x _y l l l ))
+  -- parallelForM_0To w
+  --         (\_x -> 
+  --           forM_0To h
+  --           (\_y -> 
+  --               let l :: Word8 = fromIntegral (d * 255 `div` depth) in
+  --                 setPoint _x _y l l l ))
   
   drawPixbuf dw gc pb 0 0 0 0 w h RgbDitherNone 0 0
 
