@@ -1,3 +1,5 @@
 #!/bin/bash
 
-ghci -hide-package AC-Vector-Fancy "$@"
+ghci \
+  -XPackageImports \
+  "$@"

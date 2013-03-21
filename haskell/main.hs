@@ -8,7 +8,7 @@ import Graphics.UI.Gtk.Gdk.Pixbuf
 import Data.Word (Word8)
 --import qualified Data.Vector.Unboxed.Mutable as UM
 import Data.Array.MArray --writeArray
-import Data.Vector (generateM, forM_) -- .Unboxed
+import "vector" Data.Vector (generateM, forM_) -- .Unboxed
 
 import Data.Array.Repa                          as R
 
