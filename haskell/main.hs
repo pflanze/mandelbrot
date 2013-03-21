@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, BangPatterns, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances, BangPatterns, ScopedTypeVariables, PackageImports #-}
 
 module Main where
 
