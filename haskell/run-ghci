@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ghci -package vector-0.10.0.1 "$@"
+ghci -hide-package AC-Vector-Fancy "$@"
