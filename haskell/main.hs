@@ -11,6 +11,7 @@ import Data.Array.MArray --writeArray
 import "vector" Data.Vector (generateM, forM_) -- .Unboxed
 
 import Data.Array.Repa                          as R
+import Data.Array.Repa.Index -- as RI
 
 import Control.Monad
 --import Control.Concurrent
@@ -95,15 +96,17 @@ mandelbrotInscreen w h xfrom xto yfrom yto f (Z :. _x :. _y) =
      l
 
 
-calcMandelbrot w h =
-  -- calculate
-  let shape = Z :. w :. h -- :: (Shape Int Int)
-      fakeinput = fromFunction shape (\_ -> 0 :: Word8)
-      result = 
-        --- XXX computeP $ 
-        traverse fakeinput id (mandelbrotInscreen w h xfrom xto yfrom yto)
-  in
-   result
+-- calcMandelbrot w h =
+--   -- calculate
+--   let shape = Z :. w :. h -- :: (Shape Int Int)
+--       fakeinput = fromFunction shape (\_ -> 0 :: Word8)
+--       result = 
+--         --- XXX computeP $ 
+--         traverse fakeinput id (mandelbrotInscreen w h xfrom xto yfrom yto)
+--   in
+--    result
+   
+
 
 
 renderScene :: WidgetClass widget => widget -> t -> IO Bool
@@ -120,7 +123,7 @@ renderScene d ev = do
   rowstride <- pixbufGetRowstride pb
   nChannels <- pixbufGetNChannels pb
   
-  let result = computeP $ calcMandelbrot 10 20 
+--  let result = computeP $ calcMandelbrot 10 20 
   
   let setPoint !x !y !r !g !b =
         do writeArray pixels p r
