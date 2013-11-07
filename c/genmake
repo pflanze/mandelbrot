@@ -34,6 +34,9 @@ main: $(objects)
 run: main
 	bash -c 'time ./main'
 
+rungdb: main
+	gdb ./main
+
 
 .PHONY: clean
 clean:

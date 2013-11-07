@@ -5,6 +5,9 @@ default: .make/Makefile
 run: .make/Makefile
 	make -C .make run
 
+rungdb: .make/Makefile
+	make -C .make rungdb
+
 opt: .opt/Makefile
 	make -C .opt
 
