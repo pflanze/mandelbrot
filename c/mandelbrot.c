@@ -1,3 +1,6 @@
+#define USE_SIMD
+//XX my makefile setup doesn't let me pass that through hu
+
 #include <assert.h>
 #include <unistd.h>
 #include <stdlib.h>
