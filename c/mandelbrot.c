@@ -172,12 +172,16 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
     shared(w,h,fromx,tox,fromy,toy) private(_y)			\
     schedule(static,1000)
 		for (_y=0; _y<h; _y++) {
-#pragma omp simd aligned (p : 8 * sizeof(int))
-		    complex_double p;
-		    p.r= inscreen(0,w,_x, fromx, tox);
-		    p.i= inscreen(0,h,_y, fromy, toy);
+		    // 2*sizeof(complex_double) but calculating manually right now
+#define MEMSIZ 32
+		    char mem[MEMSIZ];
+		    // XXX unsigned long, hm. WORD, please.
+		    void *memaligned = CAST(void*, CAST(unsigned long,mem) & ~ 15);
+		    complex_double *p = memaligned;
+		    p->r= inscreen(0,w,_x, fromx, tox);
+		    p->i= inscreen(0,h,_y, fromy, toy);
 		    {
-			int d= mandelbrotDepth(depth, &p);
+			int d= mandelbrotDepth(depth, p);
 			unsigned char l= d * 255 / depth;
 			setPoint(ctx, _x, _y, l,l,l);
 		    }
