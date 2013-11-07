@@ -178,6 +178,7 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		    // XXX unsigned long, hm. WORD, please.
 		    void *memaligned = CAST(void*, CAST(unsigned long,mem) & ~ 15);
 		    complex_double *p = memaligned;
+		    printf("mem=%p, p=%p\n",mem,p);
 		    p->r= inscreen(0,w,_x, fromx, tox);
 		    p->i= inscreen(0,h,_y, fromy, toy);
 		    {
