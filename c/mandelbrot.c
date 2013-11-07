@@ -15,6 +15,9 @@ typedef unsigned char guchar;
 
 #include "util.h"
 
+#include "x_posix_memalign.h"
+
+
 #define STATIC static
 
 #ifdef USE_SIMD
@@ -133,6 +136,7 @@ setPoint(struct pb_context* ctx,
     pixels[p+2] = b;
 }
 
+
 void
 mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		  double xcenter, double ycenter, double size, int depth) {
@@ -159,6 +163,8 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    printf("    toy=%.15lf\n",toy);
 	    printf("  depth=%d\n",depth);
 	    
+	    complex_double *p= x_posix_memalign(2*sizeof(complex_double),
+						sizeof(complex_double));
 	    int _x, _y;
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\
@@ -168,16 +174,17 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
     shared(w,h,fromx,tox,fromy,toy) private(_y)			\
     schedule(static,1000)
 		for (_y=0; _y<h; _y++) {
-		    complex_double p;
-		    p.r= inscreen(0,w,_x, fromx, tox);
-		    p.i= inscreen(0,h,_y, fromy, toy);
+		    p->r= inscreen(0,w,_x, fromx, tox);
+		    p->i= inscreen(0,h,_y, fromy, toy);
 		    {
-			int d= mandelbrotDepth(depth, &p);
+			int d= mandelbrotDepth(depth, p);
 			unsigned char l= d * 255 / depth;
 			setPoint(ctx, _x, _y, l,l,l);
 		    }
 		}
 	    }
+
+	    free(p);
 	}
 	x_nstime_gettime(&t1);
 	x_nstime_print_diff(&t0,&t1);
