@@ -164,7 +164,7 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    printf("  depth=%d\n",depth);
 	    
 	    complex_double *p= x_posix_memalign(2*sizeof(complex_double),
-						sizeof(complex_double));
+						2*sizeof(complex_double));
 	    int _x, _y;
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\
