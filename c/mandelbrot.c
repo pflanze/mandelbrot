@@ -49,7 +49,7 @@ typedef struct complex_double complex_double; // bad?
 
 STATIC void
 magnitudesquare (double*res, complex_double*x) {
-#ifdef USE_SIMD
+#ifdef USE_SIMD_off
     v2_double *xv= CAST(v2_double*,x);
     v2_double xv2 = *xv * *xv;
     *res= Cr(xv2) + Ci(xv2);
@@ -64,7 +64,7 @@ STATIC void
 complex_double_square(complex_double*res, complex_double*x) {
     double r= x->r;
     double i= x->i;
-#ifdef USE_SIMD
+#ifdef USE_SIMD_off
     v2_double *xv= CAST(v2_double*,x);
     {
 	v2_double xv2 = *xv * *xv;
@@ -82,7 +82,7 @@ complex_double_square(complex_double*res, complex_double*x) {
 
 STATIC void
 complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
-#ifdef USE_SIMD_hu_slower_thannotusing
+#ifdef USE_SIMD_off
     V2(a);
     V2(b);
     V2(res);
