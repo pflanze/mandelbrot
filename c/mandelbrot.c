@@ -82,7 +82,7 @@ complex_double_square(complex_double*res, complex_double*x) {
 
 STATIC void
 complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
-#ifdef USE_SIMD
+#ifdef USE_SIMD_hu_slower_thannotusing
     V2(a);
     V2(b);
     V2(res);
