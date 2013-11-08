@@ -21,7 +21,7 @@ typedef unsigned char guchar;
 #define STATIC static
 
 #ifdef USE_SIMD
-typedef double v2_double __attribute__ ((vector_size (16)));
+typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
 
 #define Cr(x) x[0]
 #define Ci(x) x[1]
@@ -31,7 +31,7 @@ typedef double v2_double __attribute__ ((vector_size (16)));
 struct complex_double {
     double r;
     double i;
-};
+} __attribute__ ((aligned (16)));
 typedef struct complex_double complex_double; // bad?
 
 // myIterateUntil :: (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
