@@ -37,6 +37,8 @@ struct complex_double {
 } __attribute__ ((aligned (16)));
 typedef struct complex_double complex_double; // bad?
 
+#define SIMD __attribute__ ((aligned (16)))
+
 // myIterateUntil :: (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
 // but (Int, a) is passed as *res, *z; *z doubling as start value
 #define ITERATE_UNTIL(res, pred, maxdepth, fn, fn_first_arg, z)	\

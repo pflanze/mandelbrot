@@ -8,6 +8,26 @@
    (Crazy optim?: immediately restart the finished channel with a new point?)
 */
 
+// isDiverged !x = (magnitudesquare x) > (1e10**2)
+STATIC void
+isDiverged2(int *res, complex_double *xs) {
+    /*
+      double magnitudesquare_l[2] SIMD;
+      double magnitudesquare_r[2] SIMD;
+    */
+    // magnitudesquare_l = r*r
+    // magnitudesquare_r = i*i
+    // magnitudesquare = magnitudesquare_l + magnitudesquare_r
+    //or, to work better with current memory layout:
+
+    double tmp;
+    magnitudesquare(&tmp, &(xs[0]));
+    res[0]= (tmp > 1e20);
+    magnitudesquare(&tmp, &(xs[1]));
+    res[1]= (tmp > 1e20);
+}
+
+
 STATIC void
 mandelbrotDepth2(int res[2], int maxdepth, complex_double*ps) {
     complex_double z[2]= {{ 0.0, 0.0 }, { 0.0, 0.0 }};
@@ -29,14 +49,16 @@ mandelbrotDepth2(int res[2], int maxdepth, complex_double*ps) {
 		res[1] = maxdepth;
 		return;
 	    }
-	    if (isDiverged(&(z[0]))) {
+	    int isdiverged[2];
+	    isDiverged2(isdiverged, z);
+	    if (isdiverged[0]) {
 		res[0] = maxdepth-__d;
 		remainder_res= &(res[1]);
 		remainder_z= &(z[1]);
 		remainder_p= &(ps[1]);
 		goto remainder_HACK;
 	    }
-	    if (isDiverged(&(z[1]))) {
+	    if (isdiverged[1]) {
 		res[1] = maxdepth-__d;
 		remainder_res= &(res[0]);
 		remainder_z= &(z[0]);
