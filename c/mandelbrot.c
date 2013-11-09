@@ -1,4 +1,5 @@
 #define USE_SIMD
+#define USE_SIMD2
 //XX my makefile setup doesn't let me pass that through hu
 
 #include <assert.h>
@@ -15,10 +16,12 @@ typedef unsigned char guchar;
 
 #include "util.h"
 
-#include "x_posix_memalign.h"
+//#include "x_posix_memalign.h"
 
 
 #define STATIC static
+
+/* Complex numbers */
 
 #ifdef USE_SIMD
 typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
@@ -46,6 +49,9 @@ typedef struct complex_double complex_double; // bad?
     }								\
     }
 
+
+
+/* Helper functions */
 
 STATIC void
 magnitudesquare (double*res, complex_double*x) {
@@ -111,6 +117,10 @@ isDiverged(complex_double*x) {
     return (tmp > 1e20);
 }
 
+#ifdef USE_SIMD2
+#include "mandelbrot2.h"
+#else
+
 STATIC int
 mandelbrotDepth(int maxdepth, complex_double*p) {
     int res;
@@ -118,6 +128,8 @@ mandelbrotDepth(int maxdepth, complex_double*p) {
     ITERATE_UNTIL(res, isDiverged, maxdepth, pIter, p, zero);
     return res;
 }
+
+#endif
 
 STATIC double
 inscreen (int from, int to, int i, double fromr, double tor) {
@@ -171,12 +183,37 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_y)			\
     schedule(static,1000)
-		for (_y=0; _y<h; _y++) {
-		    // 2*sizeof(complex_double) but calculating manually right now
-#define MEMSIZ 32
+
+
+#ifdef USE_SIMD2
+		for (_y=0; _y<(h-1) /*XXXhack to stay within bounds*/; _y+=2) {
+#define MEMSIZ 64 /* ...(see MEMSIZ 32 below) */
 		    char mem[MEMSIZ];
 		    // XXX unsigned long, hm. WORD, please.
-		    void *memaligned = CAST(void*, CAST(unsigned long,mem) & ~ 15);
+		    void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
+		    complex_double *ps = memaligned;
+		    //printf("mem=%p, p=%p\n",mem,p);
+		    ps[0].r= inscreen(0,w,_x, fromx, tox);
+		    ps[0].i= inscreen(0,h,_y, fromy, toy);
+		    ps[1].r= inscreen(0,w,_x, fromx, tox);
+		    ps[1].i= inscreen(0,h,_y+1, fromy, toy);
+		    {
+			int ds[2];
+			mandelbrotDepth2(ds, depth, ps);
+			unsigned char l0= ds[0] * 255 / depth;
+			unsigned char l1= ds[1] * 255 / depth;
+			setPoint(ctx, _x, _y, l0,l0,l0);
+			setPoint(ctx, _x, _y+1, l1,l1,l1);
+		    }
+		}
+
+#else
+
+		for (_y=0; _y<h; _y++) {
+#define MEMSIZ 32 /* 2*sizeof(complex_double) but calculating manually right now */
+		    char mem[MEMSIZ];
+		    // XXX unsigned long, hm. WORD, please.
+		    void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
 		    complex_double *p = memaligned;
 		    //printf("mem=%p, p=%p\n",mem,p);
 		    p->r= inscreen(0,w,_x, fromx, tox);
@@ -187,10 +224,13 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 			setPoint(ctx, _x, _y, l,l,l);
 		    }
 		}
+#endif
+
 	    }
 	}
 	x_nstime_gettime(&t1);
 	x_nstime_print_diff(&t0,&t1);
     }
 }
+
 

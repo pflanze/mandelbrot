@@ -23,7 +23,7 @@ all: main
 
 nstime.o: nstime.c nstime.h Makefile
 
-mandelbrot.o: mandelbrot.c mandelbrot.h nstime.h util.h x_posix_memalign.h Makefile
+mandelbrot.o: mandelbrot.c mandelbrot2.h mandelbrot.h nstime.h util.h x_posix_memalign.h Makefile
 
 main.o: main.c mandelbrot.h Makefile
 
