@@ -5,8 +5,8 @@ default: .make/Makefile
 run: .make/Makefile
 	make -C .make run
 
-rungdb: .make/Makefile
-	make -C .make rungdb
+gdb: .make/Makefile
+	make -C .make gdb
 
 opt: .opt/Makefile
 	make -C .opt
