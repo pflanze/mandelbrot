@@ -178,13 +178,13 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    printf("  depth=%d\n",depth);
 	    
 	    int _x, _y;
-#pragma omp parallel for					\
-    shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\
-    schedule(dynamic,15)
+/* #pragma omp parallel for					\ */
+/*     shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\ */
+/*     schedule(dynamic,15) */
 	    for (_x=0; _x<w; _x++) {
-#pragma omp parallel for					\
-    shared(w,h,fromx,tox,fromy,toy) private(_y)			\
-    schedule(static,1000)
+/* #pragma omp parallel for					\ */
+/*     shared(w,h,fromx,tox,fromy,toy) private(_y)			\ */
+/*     schedule(static,1000) */
 
 
 #ifdef USE_SIMD2
