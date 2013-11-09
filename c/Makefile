@@ -8,6 +8,9 @@ run: .make/Makefile
 gdb: .make/Makefile
 	make -C .make gdb
 
+valgrind: .make/Makefile
+	make -C .make valgrind
+
 opt: .opt/Makefile
 	make -C .opt
 

@@ -37,6 +37,9 @@ run: main
 gdb: main
 	gdb ./main
 
+valgrind: main
+	valgrind ./main
+
 
 .PHONY: clean
 clean:
