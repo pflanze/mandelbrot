@@ -55,8 +55,9 @@ renderScene (GtkWidget *d, GdkEventExpose *ev, gpointer data) {
     /* 	w=h; */
     /* 	h=tmp; */
     /* } */
-    w=800;
-    h=600;
+	 //XXX hard coded size, get from window instead.
+    w=1246;
+    h=998;
 	
     {
 	GdkPixbuf *pb= gdk_pixbuf_new(GDK_COLORSPACE_RGB, 0, 8, w, h);
