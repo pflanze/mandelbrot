@@ -269,11 +269,12 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		    inscreen2(C2_r(p),
 			      w, _x, _x+1, fromx, tox);
 		    {
-			v2_int d;
+			v4_int d;
 			mandelbrotDepth2(&d, depth, p);
-			v2_int l= d * 255 / depth;
-			unsigned char l0= l[0];
-			unsigned char l1= l[1];
+			v4_int l= d * 255;// / depth;
+			v4_int ll= l / depth;
+			unsigned char l0= ll[0];
+			unsigned char l1= ll[1];
 			setPoint(ctx, _x, _y, l0,l0,l0);
 			setPoint(ctx, _x+1, _y, l1,l1,l1);
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",

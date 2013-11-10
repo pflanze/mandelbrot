@@ -77,7 +77,8 @@ new_complex_double(double r, double i) {
 
 
 STATIC void
-mandelbrotDepth2(v2_int *res, int maxdepth, complex_double2 *p) {
+mandelbrotDepth2(v4_int /* just for compiler easyness? v2_int would be enough */
+		 *res, int maxdepth, complex_double2 *p) {
     complex_double2 z= { 0.0, 0.0, 0.0, 0.0 };
 
     (*res)[0]= -1;
