@@ -30,6 +30,7 @@ typedef unsigned char guchar;
 
 #ifdef USE_SIMD
 typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
+typedef float v4_float __attribute__ ((vector_size (16), aligned (16)));
 //typedef unsigned long v2_ulong __attribute__ ((vector_size (16), aligned (16)));
 typedef int64_t v2_long __attribute__ ((vector_size (16), aligned (16)));
 typedef int32_t v4_int __attribute__ ((vector_size (16), aligned (16)));
@@ -255,49 +256,69 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 
 #ifdef USE_SIMD2
 
-#               define MEMSIZ 64 /* ...(see MEMSIZ 32 below) */
+#               define MEMSIZ (64+32) /* ...(see MEMSIZ 32 below) */
 		char mem[MEMSIZ];
 		// XXX unsigned long, hm. WORD, please.
 		void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
-		complex_double2 *p = memaligned;
+		complex_double2 *ps = memaligned;
 		//printf("mem=%p, p=%p\n",mem,p);
 
-		p->i0= inscreen(0,h,_y, fromy, toy);
-		p->i1= inscreen(0,h,_y, fromy, toy);
+		complex_double2 *p1= &(ps[0]);
+		complex_double2 *p2= &(ps[1]);
+
+		p1->i0= inscreen(0,h,_y, fromy, toy);
+		p1->i1= inscreen(0,h,_y, fromy, toy);
+		p2->i0= inscreen(0,h,_y, fromy, toy);
+		p2->i1= inscreen(0,h,_y, fromy, toy);
 
 		//v2_int v2depth= {depth, depth};
-		double ddepth= depth;
-		v2_double v2depth;
-		v2depth[0]= 255.0 / ddepth;
-		v2depth[1]= 255.0 / ddepth;
+		double fdepth= depth;
+		double fratio= 255.0 / fdepth;
+		v4_float v4depth;
+		v4depth[0]= fratio;
+		v4depth[1]= fratio;
+		v4depth[2]= fratio;
+		v4depth[3]= fratio;
 
-		for (_x=0; _x<(w-1) /*XXXhack to stay within bounds*/; _x+=2) {
-		    inscreen2(C2_r(p),
+		for (_x=0; _x<(w-3) /*XXXhack to stay within bounds*/; _x+=4) {
+		    inscreen2(C2_r(p1),
 			      w, _x, _x+1, fromx, tox);
+		    inscreen2(C2_r(p2),
+			      w, _x+2, _x+3, fromx, tox);
 		    {
-			v2_int d;
-			mandelbrotDepth2(&d, depth, p);
-			double d0= d[0];
-			double d1= d[1];
-			v2_double _d;
+			v4_int d;
+			mandelbrotDepth4(&d, depth, p1, p2);
+			float d0= d[0];
+			float d1= d[1];
+			float d2= d[2];
+			float d3= d[3];
+			v4_float _d;
 			_d[0]=d0;
 			_d[1]=d1;
-			v2_double _l = _d * v2depth;
+			_d[2]=d2;
+			_d[3]=d3;
+			v4_float _l = _d * v4depth;
 			//v2_long l= _mm_cvttsd_si32(_l);
 			//error: incompatible types when initializing type 'v2_long' using type 'int'
 			//v2_long l= _mm_cvttsd_si32(_mm_load_sd(&_l));
 			//error: incompatible types when initializing type 'v2_long' using type 'int
-			int l[2];
-			l[0]= _mm_cvttsd_si32(_mm_load_sd(&(_l[0])));
-			l[1]= _mm_cvttsd_si32(_mm_load_sd(&(_l[1])));
-			unsigned char l0= l[0];
-			unsigned char l1= l[1];
+			unsigned char l0= _mm_cvtt_ss2si(_mm_load_ss(&(_l[0])));
+			unsigned char l1= _mm_cvtt_ss2si(_mm_load_ss(&(_l[1])));
+			unsigned char l2= _mm_cvtt_ss2si(_mm_load_ss(&(_l[2])));
+			unsigned char l3= _mm_cvtt_ss2si(_mm_load_ss(&(_l[3])));
 			setPoint(ctx, _x, _y, l0,l0,l0);
 			setPoint(ctx, _x+1, _y, l1,l1,l1);
+			setPoint(ctx, _x+2, _y, l2,l2,l2);
+			setPoint(ctx, _x+3, _y, l3,l3,l3);
+
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
-				     p->r0, p->i0, l0));
+				     p1->r0, p1->i0, l0));
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
-				     p->r1, p->i1, l1));
+				     p1->r1, p1->i1, l1));
+			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
+				     p2->r0, p2->i0, l0));
+			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
+				     p2->r1, p2->i1, l1));
 		    }
 		}
 

@@ -77,37 +77,59 @@ new_complex_double(double r, double i) {
 
 
 STATIC void
-mandelbrotDepth2(v2_int *res, int maxdepth, complex_double2 *p) {
-    complex_double2 z= { 0.0, 0.0, 0.0, 0.0 };
+mandelbrotDepth4(v4_int *res, int maxdepth,
+		 complex_double2 *p1, complex_double2 *p2) {
+    complex_double2 z1= { 0.0, 0.0, 0.0, 0.0 };
+    complex_double2 z2= { 0.0, 0.0, 0.0, 0.0 };
 
     (*res)[0]= -1;
     (*res)[1]= -1;
+    (*res)[2]= -1;
+    (*res)[3]= -1;
 
     DEBUG(printf("mandelbrotDepth2( ((%g) :+ (%g)), ((%g) :+ (%g)) )\n",
-		 p->r0, p->i0,  p->r1, p->i1));
+		 p1->r0, p1->i0,  p1->r1, p1->i1));
+    DEBUG(printf("mandelbrotDepth2( ((%g) :+ (%g)), ((%g) :+ (%g)) )\n",
+		 p2->r0, p2->i0,  p2->r1, p2->i1));
     
     // ITERATE_UNTIL(res, isDiverged, maxdepth, pIter, p, zero);
     // #define ITERATE_UNTIL(res, pred, maxdepth, fn, fn_first_arg, z)	..:
     {
 	int d= maxdepth;
-	int channels=2;
+	int channels=4;
 	while (1) {
-	    v2_long isdiverged;
-	    isDiverged2(&isdiverged, &z);
+	    v2_long isdiverged1;
+	    isDiverged2(&isdiverged1, &z1);
+	    v2_long isdiverged2;
+	    isDiverged2(&isdiverged2, &z2);
+
 	    DEBUG(printf("(%d,%d)= isDiverged2(%g,%g,%g,%g)\n",
-			 isdiverged[0], 
-			 isdiverged[1],
-			 z.r0,z.r1,z.i0,z.i1));
+			 isdiverged1[0], 
+			 isdiverged1[1],
+			 z1.r0,z1.r1,z1.i0,z1.i1));
+	    DEBUG(printf("(%d,%d)= isDiverged2(%g,%g,%g,%g)\n",
+			 isdiverged2[0], 
+			 isdiverged2[1],
+			 z2.r0,z2.r1,z2.i0,z2.i1));
 	    /* if (isdiverged[0] || isdiverged[1]) { */
 	    /* 	complex_double *man= new_complex_double (-4919165.4427832961, -48408484422782.219); */
 	    /* 	abort();// */
 	    /* } */
-	    if (isdiverged[0] && (*res)[0]==-1) {
+
+	    if (isdiverged1[0] && (*res)[0]==-1) {
 		(*res)[0] = maxdepth-d;
 		channels--;
 	    }
-	    if (isdiverged[1] && (*res)[1]==-1) {
+	    if (isdiverged1[1] && (*res)[1]==-1) {
 		(*res)[1] = maxdepth-d;
+		channels--;
+	    }
+	    if (isdiverged2[0] && (*res)[2]==-1) {
+		(*res)[2] = maxdepth-d;
+		channels--;
+	    }
+	    if (isdiverged2[1] && (*res)[3]==-1) {
+		(*res)[3] = maxdepth-d;
 		channels--;
 	    }
 	    if (!channels)
@@ -118,9 +140,14 @@ mandelbrotDepth2(v2_int *res, int maxdepth, complex_double2 *p) {
 		    (*res)[0] = maxdepth;
 		if ((*res)[1]==-1)
 		    (*res)[1] = maxdepth;
+		if ((*res)[2]==-1)
+		    (*res)[2] = maxdepth;
+		if ((*res)[3]==-1)
+		    (*res)[3] = maxdepth;
 		return;
 	    }
-	    pIter2(&z, p, &z);
+	    pIter2(&z1, p1, &z1);
+	    pIter2(&z2, p2, &z2);
 	}
     }
 }
