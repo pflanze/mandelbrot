@@ -125,20 +125,16 @@ mandelbrotDepth2(int *res, int maxdepth, complex_double2 *p) {
 	    /* 	complex_double *man= new_complex_double (-4919165.4427832961, -48408484422782.219); */
 	    /* 	abort();// */
 	    /* } */
-	    __m128i *FOO= &isdiverged;
-	    int vmask = _mm_movemask_epi8(*FOO);
-	    if (vmask!=0) {
-		if (isdiverged[0] && res[0]==-1) {
-		    res[0] = maxdepth-d;
-		    channels--;
-		}
-		if (isdiverged[1] && res[1]==-1) {
-		    res[1] = maxdepth-d;
-		    channels--;
-		}
-		if (!channels)
-		    return; // hu, why did break not work?
+	    if (isdiverged[0] && res[0]==-1) {
+		res[0] = maxdepth-d;
+		channels--;
 	    }
+	    if (isdiverged[1] && res[1]==-1) {
+		res[1] = maxdepth-d;
+		channels--;
+	    }
+	    if (!channels)
+		return; // hu, why did break not work?
 	    d--;
 	    if (d == 0) {
 		if (res[0]==-1)
