@@ -205,10 +205,10 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\
     schedule(dynamic,20)
-	    for (_x=0; _x<w; _x++) {
+	    for (_y=0; _y<h; _y++) {
 
 #ifdef USE_SIMD2
-		for (_y=0; _y<(h-1) /*XXXhack to stay within bounds*/; _y+=2) {
+		for (_x=0; _x<(w-1) /*XXXhack to stay within bounds*/; _x+=2) {
 #define MEMSIZ 64 /* ...(see MEMSIZ 32 below) */
 		    char mem[MEMSIZ];
 		    // XXX unsigned long, hm. WORD, please.
@@ -217,15 +217,15 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		    //printf("mem=%p, p=%p\n",mem,p);
 		    p->r0= inscreen(0,w,_x, fromx, tox);
 		    p->i0= inscreen(0,h,_y, fromy, toy);
-		    p->r1= inscreen(0,w,_x, fromx, tox);
-		    p->i1= inscreen(0,h,_y+1, fromy, toy);
+		    p->r1= inscreen(0,w,_x+1, fromx, tox);
+		    p->i1= inscreen(0,h,_y, fromy, toy);
 		    {
 			int d[2];
 			mandelbrotDepth2(d, depth, p);
 			unsigned char l0= d[0] * 255 / depth;
 			unsigned char l1= d[1] * 255 / depth;
 			setPoint(ctx, _x, _y, l0,l0,l0);
-			setPoint(ctx, _x, _y+1, l1,l1,l1);
+			setPoint(ctx, _x+1, _y, l1,l1,l1);
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
 				     p->r0, p->i0, l0));
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
@@ -235,7 +235,7 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 
 #else
 
-		for (_y=0; _y<h; _y++) {
+		for (_x=0; _x<w; _x++) {
 #define MEMSIZ 32 /* 2*sizeof(complex_double) but calculating manually right now */
 		    char mem[MEMSIZ];
 		    // XXX unsigned long, hm. WORD, please.
