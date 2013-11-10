@@ -1,4 +1,5 @@
 #define USE_SIMD
+//#define USE_SIMD_off
 #define USE_SIMD2
 //XX my makefile setup doesn't let me pass that through hu
 
@@ -26,18 +27,24 @@ typedef unsigned char guchar;
 #ifdef USE_SIMD
 typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
 
+#define SIMD __attribute__ ((aligned (16)))
+
 #define Cr(x) x[0]
 #define Ci(x) x[1]
+
+#else
+
+#define SIMD
+
 #endif
 
 
 struct complex_double {
     double r;
     double i;
-} __attribute__ ((aligned (16)));
-typedef struct complex_double complex_double; // bad?
+} SIMD;
+typedef struct complex_double complex_double SIMD;
 
-#define SIMD __attribute__ ((aligned (16)))
 
 // myIterateUntil :: (a -> Bool) -> Int -> (a -> a) -> a -> (Int, a)
 // but (Int, a) is passed as *res, *z; *z doubling as start value
@@ -51,6 +58,23 @@ typedef struct complex_double complex_double; // bad?
     }								\
     }
 
+
+#ifdef USE_SIMD
+#define V2(var) v2_double *v##var= CAST(v2_double*,var)
+#endif
+
+
+#ifdef USE_SIMD2
+#include "mandelbrot2.h"
+#undef DEBUG
+//#else
+#endif
+
+
+#define DEBUG(x)
+
+
+#if 1
 
 
 /* Helper functions */
@@ -68,6 +92,7 @@ magnitudesquare (double*res, complex_double*x) {
 #endif
 }
 
+
 STATIC void
 complex_double_square(complex_double*res, complex_double*x) {
     double r= x->r;
@@ -84,9 +109,6 @@ complex_double_square(complex_double*res, complex_double*x) {
     res->i = 2*r*i;
 }
 
-#ifdef USE_SIMD
-#define V2(var) v2_double *v##var= CAST(v2_double*,var)
-#endif
 
 STATIC void
 complex_double_add(complex_double*res, complex_double*a, complex_double*b) {
@@ -118,10 +140,6 @@ isDiverged(complex_double*x) {
     magnitudesquare(&tmp, x);
     return (tmp > 1e20);
 }
-
-#ifdef USE_SIMD2
-#include "mandelbrot2.h"
-#else
 
 STATIC int
 mandelbrotDepth(int maxdepth, complex_double*p) {
@@ -193,19 +211,23 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		    char mem[MEMSIZ];
 		    // XXX unsigned long, hm. WORD, please.
 		    void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
-		    complex_double *ps = memaligned;
+		    complex_double2 *p = memaligned;
 		    //printf("mem=%p, p=%p\n",mem,p);
-		    ps[0].r= inscreen(0,w,_x, fromx, tox);
-		    ps[0].i= inscreen(0,h,_y, fromy, toy);
-		    ps[1].r= inscreen(0,w,_x, fromx, tox);
-		    ps[1].i= inscreen(0,h,_y+1, fromy, toy);
+		    p->r0= inscreen(0,w,_x, fromx, tox);
+		    p->i0= inscreen(0,h,_y, fromy, toy);
+		    p->r1= inscreen(0,w,_x, fromx, tox);
+		    p->i1= inscreen(0,h,_y+1, fromy, toy);
 		    {
-			int ds[2];
-			mandelbrotDepth2(ds, depth, ps);
-			unsigned char l0= ds[0] * 255 / depth;
-			unsigned char l1= ds[1] * 255 / depth;
+			int d[2];
+			mandelbrotDepth2(d, depth, p);
+			unsigned char l0= d[0] * 255 / depth;
+			unsigned char l1= d[1] * 255 / depth;
 			setPoint(ctx, _x, _y, l0,l0,l0);
 			setPoint(ctx, _x, _y+1, l1,l1,l1);
+			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
+				     p->r0, p->i0, l0));
+			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
+				     p->r1, p->i1, l1));
 		    }
 		}
 
