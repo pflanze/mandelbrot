@@ -68,18 +68,25 @@ isDiverged2(v2_long *res, complex_double2 *x) {
     v2_double tmp;
     magnitudesquare2(&tmp, x);
     /*
-    tmp = tmp - 1e20;
-    (*res)[0]= (tmp[0] > 0);
-    (*res)[1]= (tmp[1] > 0);
+      tmp = tmp - 1e20;
+      (*res)[0]= (tmp[0] > 0);
+      (*res)[1]= (tmp[1] > 0);
+      is slower
+    */
+    (*res)[0]= -(tmp[0] > 1e20);
+    (*res)[1]= -(tmp[1] > 1e20);
+    /*
+      int i;
+      for (i=0; i<2; i++) {
+         (*res)[i]= (tmp[i] > 0);
+      }
+      does not work, gcc bug?
     */
     /*
-    int i;
-    for (i=0; i<2; i++) {
-	(*res)[i]= (tmp[i] > 0);
-    }
+      v2_double lim= { 1e20, 1e20 };
+      *res = _mm_cmpgt_epf64(tmp, lim);
+      does not exist
     */
-    v2_double lim= { 1e20, 1e20 };
-    *res = _mm_cmpgt_epf64(tmp, lim);
 }
 
 // debugging
@@ -118,16 +125,20 @@ mandelbrotDepth2(int *res, int maxdepth, complex_double2 *p) {
 	    /* 	complex_double *man= new_complex_double (-4919165.4427832961, -48408484422782.219); */
 	    /* 	abort();// */
 	    /* } */
-	    if (isdiverged[0] && res[0]==-1) {
-		res[0] = maxdepth-d;
-		channels--;
+	    __m128i *FOO= &isdiverged;
+	    int vmask = _mm_movemask_epi8(*FOO);
+	    if (vmask!=0) {
+		if (isdiverged[0] && res[0]==-1) {
+		    res[0] = maxdepth-d;
+		    channels--;
+		}
+		if (isdiverged[1] && res[1]==-1) {
+		    res[1] = maxdepth-d;
+		    channels--;
+		}
+		if (!channels)
+		    return; // hu, why did break not work?
 	    }
-	    if (isdiverged[1] && res[1]==-1) {
-		res[1] = maxdepth-d;
-		channels--;
-	    }
-	    if (!channels)
-		return; // hu, why did break not work?
 	    d--;
 	    if (d == 0) {
 		if (res[0]==-1)
