@@ -72,6 +72,33 @@ typedef struct complex_double complex_double SIMD;
 
 #ifdef USE_SIMD2
 #include "mandelbrot2.h"
+
+STATIC void
+inscreen2 (v2_double *res,
+	   int to0,
+	   int to1,
+	   int i0,
+	   int i1,
+	   v2_double *fromr,
+	   v2_double *tor) {
+    int from0= 0;
+    int from1= 0;
+
+    v2_double idiff;
+    idiff[0]= (i0 - from0);
+    idiff[1]= (i1 - from1);
+
+    v2_double ddiff;
+    ddiff[0]= (to0 - from0);
+    ddiff[1]= (to1 - from1);
+
+    (*res)= *fromr + (*tor - *fromr) * idiff / ddiff;
+    /* and adding iteratively would still be faster, right?
+       or at *least* keeping y as a constant over the whole line...
+       so, using SIMD just ... bc f that
+    */
+}
+
 #undef DEBUG
 //#else
 #endif
@@ -208,17 +235,21 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    for (_y=0; _y<h; _y++) {
 
 #ifdef USE_SIMD2
+
+#               define MEMSIZ 64 /* ...(see MEMSIZ 32 below) */
+		char mem[MEMSIZ];
+		// XXX unsigned long, hm. WORD, please.
+		void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
+		complex_double2 *p = memaligned;
+		//printf("mem=%p, p=%p\n",mem,p);
+
+		p->i0= inscreen(0,h,_y, fromy, toy);
+		p->i1= inscreen(0,h,_y, fromy, toy);
+
 		for (_x=0; _x<(w-1) /*XXXhack to stay within bounds*/; _x+=2) {
-#define MEMSIZ 64 /* ...(see MEMSIZ 32 below) */
-		    char mem[MEMSIZ];
-		    // XXX unsigned long, hm. WORD, please.
-		    void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
-		    complex_double2 *p = memaligned;
-		    //printf("mem=%p, p=%p\n",mem,p);
+		    
 		    p->r0= inscreen(0,w,_x, fromx, tox);
-		    p->i0= inscreen(0,h,_y, fromy, toy);
 		    p->r1= inscreen(0,w,_x+1, fromx, tox);
-		    p->i1= inscreen(0,h,_y, fromy, toy);
 		    {
 			int d[2];
 			mandelbrotDepth2(d, depth, p);
