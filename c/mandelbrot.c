@@ -265,16 +265,33 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		p->i0= inscreen(0,h,_y, fromy, toy);
 		p->i1= inscreen(0,h,_y, fromy, toy);
 
+		//v2_int v2depth= {depth, depth};
+		double ddepth= depth;
+		v2_double v2depth;
+		v2depth[0]= 255.0 / ddepth;
+		v2depth[1]= 255.0 / ddepth;
+
 		for (_x=0; _x<(w-1) /*XXXhack to stay within bounds*/; _x+=2) {
 		    inscreen2(C2_r(p),
 			      w, _x, _x+1, fromx, tox);
 		    {
-			v4_int d;
+			v2_int d;
 			mandelbrotDepth2(&d, depth, p);
-			v4_int l= d * 255;// / depth;
-			v4_int ll= l / depth;
-			unsigned char l0= ll[0];
-			unsigned char l1= ll[1];
+			double d0= d[0];
+			double d1= d[1];
+			v2_double _d;
+			_d[0]=d0;
+			_d[1]=d1;
+			v2_double _l = _d * v2depth;
+			//v2_long l= _mm_cvttsd_si32(_l);
+			//error: incompatible types when initializing type 'v2_long' using type 'int'
+			//v2_long l= _mm_cvttsd_si32(_mm_load_sd(&_l));
+			//error: incompatible types when initializing type 'v2_long' using type 'int
+			int l[2];
+			l[0]= _mm_cvttsd_si32(_mm_load_sd(&(_l[0])));
+			l[1]= _mm_cvttsd_si32(_mm_load_sd(&(_l[1])));
+			unsigned char l0= l[0];
+			unsigned char l1= l[1];
 			setPoint(ctx, _x, _y, l0,l0,l0);
 			setPoint(ctx, _x+1, _y, l1,l1,l1);
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
