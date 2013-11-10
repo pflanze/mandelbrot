@@ -71,32 +71,49 @@ typedef struct complex_double complex_double SIMD;
 
 
 #ifdef USE_SIMD2
+
+//struct complex_double2 { complex_double val[2]; } SIMD;
+//typedef struct complex_double2 complex_double2 SIMD;
+//XXX for now.
+struct complex_double2 {
+    double r0,r1;
+    double i0,i1;
+    // (and packed?)
+} SIMD;
+typedef struct complex_double2 complex_double2 SIMD;
+
+/*
+#define C2_r(x) (CAST(v2_double*,(x)))
+#define C2_i(x) (CAST(v2_double*,&((x)->i0)))
+type check, please..:
+*/
+STATIC inline v2_double*
+C2_r(complex_double2 *x) {
+    return CAST(v2_double*,x);
+}
+STATIC inline v2_double*
+C2_i(complex_double2 *x) {
+    return CAST(v2_double*,&(x->i0));
+}
+
 #include "mandelbrot2.h"
 
 STATIC void
 inscreen2 (v2_double *res,
-	   int to0,
-	   int to1,
+	   int to,
 	   int i0,
 	   int i1,
-	   v2_double *fromr,
-	   v2_double *tor) {
-    int from0= 0;
-    int from1= 0;
+	   double fromr,
+	   double tor) {
+    int from= 0;
 
     v2_double idiff;
-    idiff[0]= (i0 - from0);
-    idiff[1]= (i1 - from1);
+    idiff[0]= (i0 - from);
+    idiff[1]= (i1 - from);
 
-    v2_double ddiff;
-    ddiff[0]= (to0 - from0);
-    ddiff[1]= (to1 - from1);
+    double ddiff= (to - from);
 
-    (*res)= *fromr + (*tor - *fromr) * idiff / ddiff;
-    /* and adding iteratively would still be faster, right?
-       or at *least* keeping y as a constant over the whole line...
-       so, using SIMD just ... bc f that
-    */
+    (*res)= fromr + (tor - fromr) * idiff / ddiff;
 }
 
 #undef DEBUG
@@ -247,9 +264,8 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		p->i1= inscreen(0,h,_y, fromy, toy);
 
 		for (_x=0; _x<(w-1) /*XXXhack to stay within bounds*/; _x+=2) {
-		    
-		    p->r0= inscreen(0,w,_x, fromx, tox);
-		    p->r1= inscreen(0,w,_x+1, fromx, tox);
+		    inscreen2(C2_r(p),
+			      w, _x, _x+1, fromx, tox);
 		    {
 			int d[2];
 			mandelbrotDepth2(d, depth, p);

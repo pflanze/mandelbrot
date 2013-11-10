@@ -9,29 +9,6 @@
    (Crazy optim?: immediately restart the finished channel with a new point?)
 */
 
-//struct complex_double2 { complex_double val[2]; } SIMD;
-//typedef struct complex_double2 complex_double2 SIMD;
-//XXX for now.
-struct complex_double2 {
-    double r0,r1;
-    double i0,i1;
-    // (and packed?)
-} SIMD;
-typedef struct complex_double2 complex_double2 SIMD;
-
-/*
-#define C2_r(x) (CAST(v2_double*,(x)))
-#define C2_i(x) (CAST(v2_double*,&((x)->i0)))
-type check, please..:
-*/
-STATIC inline v2_double*
-C2_r(complex_double2 *x) {
-    return CAST(v2_double*,x);
-}
-STATIC inline v2_double*
-C2_i(complex_double2 *x) {
-    return CAST(v2_double*,&(x->i0));
-}
 
 STATIC void
 pIter2(complex_double2 *res, complex_double2 *c, complex_double2 *z) {
