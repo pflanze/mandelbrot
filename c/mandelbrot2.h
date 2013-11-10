@@ -77,11 +77,11 @@ new_complex_double(double r, double i) {
 
 
 STATIC void
-mandelbrotDepth2(int *res, int maxdepth, complex_double2 *p) {
+mandelbrotDepth2(v2_int *res, int maxdepth, complex_double2 *p) {
     complex_double2 z= { 0.0, 0.0, 0.0, 0.0 };
 
-    res[0]= -1;
-    res[1]= -1;
+    (*res)[0]= -1;
+    (*res)[1]= -1;
 
     DEBUG(printf("mandelbrotDepth2( ((%g) :+ (%g)), ((%g) :+ (%g)) )\n",
 		 p->r0, p->i0,  p->r1, p->i1));
@@ -102,22 +102,22 @@ mandelbrotDepth2(int *res, int maxdepth, complex_double2 *p) {
 	    /* 	complex_double *man= new_complex_double (-4919165.4427832961, -48408484422782.219); */
 	    /* 	abort();// */
 	    /* } */
-	    if (isdiverged[0] && res[0]==-1) {
-		res[0] = maxdepth-d;
+	    if (isdiverged[0] && (*res)[0]==-1) {
+		(*res)[0] = maxdepth-d;
 		channels--;
 	    }
-	    if (isdiverged[1] && res[1]==-1) {
-		res[1] = maxdepth-d;
+	    if (isdiverged[1] && (*res)[1]==-1) {
+		(*res)[1] = maxdepth-d;
 		channels--;
 	    }
 	    if (!channels)
 		return; // hu, why did break not work?
 	    d--;
 	    if (d == 0) {
-		if (res[0]==-1)
-		    res[0] = maxdepth;
-		if (res[1]==-1)
-		    res[1] = maxdepth;
+		if ((*res)[0]==-1)
+		    (*res)[0] = maxdepth;
+		if ((*res)[1]==-1)
+		    (*res)[1] = maxdepth;
 		return;
 	    }
 	    pIter2(&z, p, &z);

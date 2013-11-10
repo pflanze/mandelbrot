@@ -32,6 +32,8 @@ typedef unsigned char guchar;
 typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
 //typedef unsigned long v2_ulong __attribute__ ((vector_size (16), aligned (16)));
 typedef int64_t v2_long __attribute__ ((vector_size (16), aligned (16)));
+typedef int32_t v4_int __attribute__ ((vector_size (16), aligned (16)));
+typedef int32_t v2_int __attribute__ ((vector_size (8), aligned (16)));
 
 #define SIMD __attribute__ ((aligned (16)))
 
@@ -267,10 +269,11 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		    inscreen2(C2_r(p),
 			      w, _x, _x+1, fromx, tox);
 		    {
-			int d[2];
-			mandelbrotDepth2(d, depth, p);
-			unsigned char l0= d[0] * 255 / depth;
-			unsigned char l1= d[1] * 255 / depth;
+			v2_int d;
+			mandelbrotDepth2(&d, depth, p);
+			v2_int l= d * 255 / depth;
+			unsigned char l0= l[0];
+			unsigned char l1= l[1];
 			setPoint(ctx, _x, _y, l0,l0,l0);
 			setPoint(ctx, _x+1, _y, l1,l1,l1);
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
