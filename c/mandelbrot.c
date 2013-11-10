@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+//which one? for int64_t
+#include <stdint.h>
+#include <inttypes.h> 
+
 // HACK, sgh, to avoid having to include all that stuff. ok?
 typedef int gint;
 typedef unsigned char guchar;
@@ -26,6 +30,8 @@ typedef unsigned char guchar;
 
 #ifdef USE_SIMD
 typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
+//typedef unsigned long v2_ulong __attribute__ ((vector_size (16), aligned (16)));
+typedef int64_t v2_long __attribute__ ((vector_size (16), aligned (16)));
 
 #define SIMD __attribute__ ((aligned (16)))
 

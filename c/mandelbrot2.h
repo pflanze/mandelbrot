@@ -59,13 +59,27 @@ magnitudesquare2 (v2_double *res, complex_double2 *x) {
     *res = *C2_r(x) * *C2_r(x) + *C2_i(x) * *C2_i(x);
 }
 
+
+#include <xmmintrin.h>
+
 // isDiverged !x = (magnitudesquare x) > (1e10**2)
 STATIC void
-isDiverged2(int *res, complex_double2 *x) {
+isDiverged2(v2_long *res, complex_double2 *x) {
     v2_double tmp;
     magnitudesquare2(&tmp, x);
-    res[0]= (tmp[0] > 1e20);
-    res[1]= (tmp[1] > 1e20);
+    /*
+    tmp = tmp - 1e20;
+    (*res)[0]= (tmp[0] > 0);
+    (*res)[1]= (tmp[1] > 0);
+    */
+    /*
+    int i;
+    for (i=0; i<2; i++) {
+	(*res)[i]= (tmp[i] > 0);
+    }
+    */
+    v2_double lim= { 1e20, 1e20 };
+    *res = _mm_cmpgt_epf64(tmp, lim);
 }
 
 // debugging
@@ -94,15 +108,8 @@ mandelbrotDepth2(int *res, int maxdepth, complex_double2 *p) {
 	int d= maxdepth;
 	int channels=2;
 	while (1) {
-	    if (d == 0) {
-		if (res[0]==-1)
-		    res[0] = maxdepth;
-		if (res[1]==-1)
-		    res[1] = maxdepth;
-		return;
-	    }
-	    int isdiverged[2];
-	    isDiverged2(isdiverged, &z);
+	    v2_long isdiverged;
+	    isDiverged2(&isdiverged, &z);
 	    DEBUG(printf("(%d,%d)= isDiverged2(%g,%g,%g,%g)\n",
 			 isdiverged[0], 
 			 isdiverged[1],
@@ -122,6 +129,13 @@ mandelbrotDepth2(int *res, int maxdepth, complex_double2 *p) {
 	    if (!channels)
 		return; // hu, why did break not work?
 	    d--;
+	    if (d == 0) {
+		if (res[0]==-1)
+		    res[0] = maxdepth;
+		if (res[1]==-1)
+		    res[1] = maxdepth;
+		return;
+	    }
 	    pIter2(&z, p, &z);
 	}
     }
