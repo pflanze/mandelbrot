@@ -204,12 +204,8 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 	    int _x, _y;
 #pragma omp parallel for					\
     shared(w,h,fromx,tox,fromy,toy) private(_x,_y)		\
-    schedule(dynamic,15)
+    schedule(dynamic,20)
 	    for (_x=0; _x<w; _x++) {
-#pragma omp parallel for					\
-    shared(w,h,fromx,tox,fromy,toy) private(_y)			\
-    schedule(static,1000)
-
 
 #ifdef USE_SIMD2
 		for (_y=0; _y<(h-1) /*XXXhack to stay within bounds*/; _y+=2) {
