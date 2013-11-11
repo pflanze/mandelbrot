@@ -1,0 +1,18 @@
+Requires gcc, openmp (e.g. libopenmpi1.3 on Debian) and Gtk
+(libgtk2.0-dev) to be installed.
+
+Run
+
+ make optrun
+
+for the default picture, optimized binary. See Makefile for other make
+targets.
+
+Run
+
+ .opt/main -h
+
+to see how to pass different coordinates and depth.
+
+The size of the picture is hard coded for now, as I haven't figured
+out how to get it from the window in Gtk yet.

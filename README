@@ -1,0 +1,15 @@
+This is a simple Mandelbrot set renderer aiming to check the
+suitability of Haskell for high-performance computing, or to find
+suitable approaches.
+
+For this purpose, the renderer was written both in Haskell (GHC) and
+pure C versions.
+
+The C version is mature and is making good use of SIMD and SMP
+(optimized for a Core 2 duo). The Haskell version isn't mature yet,
+and the latest unfinished developments have even been undone in commit
+9a3da3cf49.. . It is currently much slower. When I get around
+compiling newest ghc versions with LLVM backend and patches for SIMD
+support, I might try to finish it (the C version compiled by gcc will
+probably always beat it to some extent, though, as in my experience it
+generates faster numeric code than clang/LLVM).
