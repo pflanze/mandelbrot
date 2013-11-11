@@ -2,10 +2,12 @@
 
 /*
    calculate 2 mandelbrot points in parallel with SIMD: 
-   calculate all complex math serially, but instead do everything 2 times in parallel.
 
-   Means, there will be waste of some depth calculation since we can
-   only stop iterating if *both* points have diverged.
+   calculate everything serially per point, but instead do everything
+   2 times in parallel.
+
+   This Means that there will be waste of some depth calculation since
+   we can only stop iterating if *both* points have diverged.
    (Crazy optim?: immediately restart the finished channel with a new point?)
 */
 
@@ -133,7 +135,7 @@ mandelbrotDepth4(v4_int *res, int maxdepth,
 		channels--;
 	    }
 	    if (!channels)
-		return; // hu, why did break not work?
+		return;
 	    d--;
 	    if (d == 0) {
 		if ((*res)[0]==-1)

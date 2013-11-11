@@ -1,7 +1,20 @@
+/* Configuration.  XX my makefile setup doesn't let me pass that through */
+
+/* Whether to use SIMD at all */
 #define USE_SIMD
+
+#ifdef USE_SIMD
+
+/* Whether to use SIMD in complex number library. Not worth it */
 //#define USE_SIMD_off
+
+/* Whether to use SIMD to calculate 2 points in parallel using
+   mandelbrot2.h.  Worth it */
 #define USE_SIMD2
-//XX my makefile setup doesn't let me pass that through hu
+
+#endif /* USE_SIMD */
+
+/* ------------------------------------------------------------------ */
 
 #include <assert.h>
 #include <unistd.h>
@@ -12,7 +25,7 @@
 #include <stdint.h>
 #include <inttypes.h> 
 
-// HACK, sgh, to avoid having to include all that stuff. ok?
+// HACK to avoid having to include glib or gtk headers
 typedef int gint;
 typedef unsigned char guchar;
 
@@ -26,12 +39,10 @@ typedef unsigned char guchar;
 
 #define STATIC static
 
-/* Complex numbers */
 
 #ifdef USE_SIMD
 typedef double v2_double __attribute__ ((vector_size (16), aligned (16)));
 typedef float v4_float __attribute__ ((vector_size (16), aligned (16)));
-//typedef unsigned long v2_ulong __attribute__ ((vector_size (16), aligned (16)));
 typedef int64_t v2_long __attribute__ ((vector_size (16), aligned (16)));
 typedef int32_t v4_int __attribute__ ((vector_size (16), aligned (16)));
 typedef int32_t v2_int __attribute__ ((vector_size (8), aligned (16)));
@@ -41,11 +52,13 @@ typedef int32_t v2_int __attribute__ ((vector_size (8), aligned (16)));
 #define Cr(x) x[0]
 #define Ci(x) x[1]
 
+#define V2(var) v2_double *v##var= CAST(v2_double*,var)
+
 #else
 
 #define SIMD
 
-#endif
+#endif /* USE_SIMD */
 
 
 struct complex_double {
@@ -68,16 +81,9 @@ typedef struct complex_double complex_double SIMD;
     }
 
 
-#ifdef USE_SIMD
-#define V2(var) v2_double *v##var= CAST(v2_double*,var)
-#endif
-
 
 #ifdef USE_SIMD2
 
-//struct complex_double2 { complex_double val[2]; } SIMD;
-//typedef struct complex_double2 complex_double2 SIMD;
-//XXX for now.
 struct complex_double2 {
     double r0,r1;
     double i0,i1;
@@ -85,11 +91,6 @@ struct complex_double2 {
 } SIMD;
 typedef struct complex_double2 complex_double2 SIMD;
 
-/*
-#define C2_r(x) (CAST(v2_double*,(x)))
-#define C2_i(x) (CAST(v2_double*,&((x)->i0)))
-type check, please..:
-*/
 STATIC inline v2_double*
 C2_r(complex_double2 *x) {
     return CAST(v2_double*,x);
@@ -120,17 +121,8 @@ inscreen2 (v2_double *res,
 }
 
 #undef DEBUG
-//#else
-#endif
 
-
-#define DEBUG(x)
-
-
-#if 1
-
-
-/* Helper functions */
+#else  /*! USE_SIMD2 */
 
 STATIC void
 magnitudesquare (double*res, complex_double*x) {
@@ -144,7 +136,6 @@ magnitudesquare (double*res, complex_double*x) {
     *res= r*r + i*i;
 #endif
 }
-
 
 STATIC void
 complex_double_square(complex_double*res, complex_double*x) {
@@ -202,7 +193,7 @@ mandelbrotDepth(int maxdepth, complex_double*p) {
     return res;
 }
 
-#endif
+#endif /* !USE_SIMD2 */
 
 STATIC double
 inscreen (int from, int to, int i, double fromr, double tor) {
@@ -220,6 +211,9 @@ setPoint(struct pb_context* ctx,
     pixels[p+1] = g;
     pixels[p+2] = b;
 }
+
+
+#define DEBUG(x)
 
 
 void
@@ -256,12 +250,10 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 
 #ifdef USE_SIMD2
 
-#               define MEMSIZ (64+32) /* ...(see MEMSIZ 32 below) */
+#               define MEMSIZ (64+32)
 		char mem[MEMSIZ];
-		// XXX unsigned long, hm. WORD, please.
 		void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
 		complex_double2 *ps = memaligned;
-		//printf("mem=%p, p=%p\n",mem,p);
 
 		complex_double2 *p1= &(ps[0]);
 		complex_double2 *p2= &(ps[1]);
@@ -271,7 +263,6 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		p2->i0= inscreen(0,h,_y, fromy, toy);
 		p2->i1= inscreen(0,h,_y, fromy, toy);
 
-		//v2_int v2depth= {depth, depth};
 		double fdepth= depth;
 		double fratio= 255.0 / fdepth;
 		v4_float v4depth;
@@ -280,7 +271,7 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		v4depth[2]= fratio;
 		v4depth[3]= fratio;
 
-		for (_x=0; _x<(w-3) /*XXXhack to stay within bounds*/; _x+=4) {
+		for (_x=0; _x<(w-3) /*XX hack to stay within bounds*/; _x+=4) {
 		    inscreen2(C2_r(p1),
 			      w, _x, _x+1, fromx, tox);
 		    inscreen2(C2_r(p2),
@@ -298,10 +289,6 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 			_d[2]=d2;
 			_d[3]=d3;
 			v4_float _l = _d * v4depth;
-			//v2_long l= _mm_cvttsd_si32(_l);
-			//error: incompatible types when initializing type 'v2_long' using type 'int'
-			//v2_long l= _mm_cvttsd_si32(_mm_load_sd(&_l));
-			//error: incompatible types when initializing type 'v2_long' using type 'int
 			unsigned char l0= _mm_cvtt_ss2si(_mm_load_ss(&(_l[0])));
 			unsigned char l1= _mm_cvtt_ss2si(_mm_load_ss(&(_l[1])));
 			unsigned char l2= _mm_cvtt_ss2si(_mm_load_ss(&(_l[2])));
@@ -327,10 +314,8 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		for (_x=0; _x<w; _x++) {
 #define MEMSIZ 32 /* 2*sizeof(complex_double) but calculating manually right now */
 		    char mem[MEMSIZ];
-		    // XXX unsigned long, hm. WORD, please.
 		    void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
 		    complex_double *p = memaligned;
-		    //printf("mem=%p, p=%p\n",mem,p);
 		    p->r= inscreen(0,w,_x, fromx, tox);
 		    p->i= inscreen(0,h,_y, fromy, toy);
 		    {
