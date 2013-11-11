@@ -34,8 +34,6 @@ typedef unsigned char guchar;
 
 #include "util.h"
 
-//#include "x_posix_memalign.h"
-
 
 #define STATIC static
 
@@ -250,18 +248,12 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 
 #ifdef USE_SIMD2
 
-#               define MEMSIZ (64+32)
-		char mem[MEMSIZ];
-		void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
-		complex_double2 *ps = memaligned;
+		complex_double2 p1,p2;
 
-		complex_double2 *p1= &(ps[0]);
-		complex_double2 *p2= &(ps[1]);
-
-		p1->i0= inscreen(0,h,_y, fromy, toy);
-		p1->i1= inscreen(0,h,_y, fromy, toy);
-		p2->i0= inscreen(0,h,_y, fromy, toy);
-		p2->i1= inscreen(0,h,_y, fromy, toy);
+		p1.i0= inscreen(0,h,_y, fromy, toy);
+		p1.i1= inscreen(0,h,_y, fromy, toy);
+		p2.i0= inscreen(0,h,_y, fromy, toy);
+		p2.i1= inscreen(0,h,_y, fromy, toy);
 
 		double fdepth= depth;
 		double fratio= 255.0 / fdepth;
@@ -272,13 +264,13 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 		v4depth[3]= fratio;
 
 		for (_x=0; _x<(w-3) /*XX hack to stay within bounds*/; _x+=4) {
-		    inscreen2(C2_r(p1),
+		    inscreen2(C2_r(&p1),
 			      w, _x, _x+1, fromx, tox);
-		    inscreen2(C2_r(p2),
+		    inscreen2(C2_r(&p2),
 			      w, _x+2, _x+3, fromx, tox);
 		    {
 			v4_int d;
-			mandelbrotDepth4(&d, depth, p1, p2);
+			mandelbrotDepth4(&d, depth, &p1, &p2);
 			float d0= d[0];
 			float d1= d[1];
 			float d2= d[2];
@@ -299,27 +291,23 @@ mandelbrot_render(struct pb_context *ctx, gint w, gint h,
 			setPoint(ctx, _x+3, _y, l3,l3,l3);
 
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
-				     p1->r0, p1->i0, l0));
+				     p1.r0, p1.i0, l0));
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
-				     p1->r1, p1->i1, l1));
+				     p1.r1, p1.i1, l1));
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
-				     p2->r0, p2->i0, l0));
+				     p2.r0, p2.i0, l0));
 			DEBUG(printf("((%.14e):+(%.14e)) -> %i\n",
-				     p2->r1, p2->i1, l1));
+				     p2.r1, p2.i1, l1));
 		    }
 		}
 
 #else
-
 		for (_x=0; _x<w; _x++) {
-#define MEMSIZ 32 /* 2*sizeof(complex_double) but calculating manually right now */
-		    char mem[MEMSIZ];
-		    void *memaligned = CAST(void*, CAST(intptr_t,mem) & ~ 15);
-		    complex_double *p = memaligned;
-		    p->r= inscreen(0,w,_x, fromx, tox);
-		    p->i= inscreen(0,h,_y, fromy, toy);
+		    complex_double p;
+		    p.r= inscreen(0,w,_x, fromx, tox);
+		    p.i= inscreen(0,h,_y, fromy, toy);
 		    {
-			int d= mandelbrotDepth(depth, p);
+			int d= mandelbrotDepth(depth, &p);
 			unsigned char l= d * 255 / depth;
 			setPoint(ctx, _x, _y, l,l,l);
 		    }
