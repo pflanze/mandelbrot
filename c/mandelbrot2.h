@@ -68,15 +68,6 @@ isDiverged2(v2_long *res, complex_double2 *x) {
     */
 }
 
-// debugging
-STATIC complex_double*
-new_complex_double(double r, double i) {
-    complex_double *p= malloc(sizeof(complex_double));
-    p->r=r;
-    p->i=i;
-    return p;
-}
-
 
 STATIC void
 mandelbrotDepth4(v4_int *res, int maxdepth,
@@ -113,10 +104,6 @@ mandelbrotDepth4(v4_int *res, int maxdepth,
 			 isdiverged2[0], 
 			 isdiverged2[1],
 			 z2.r0,z2.r1,z2.i0,z2.i1));
-	    /* if (isdiverged[0] || isdiverged[1]) { */
-	    /* 	complex_double *man= new_complex_double (-4919165.4427832961, -48408484422782.219); */
-	    /* 	abort();// */
-	    /* } */
 
 	    if (isdiverged1[0] && (*res)[0]==-1) {
 		(*res)[0] = maxdepth-d;
