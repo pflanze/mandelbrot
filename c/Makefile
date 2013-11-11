@@ -28,5 +28,5 @@ clean:
 	./genmake .make ""
 
 .opt/Makefile: genmake Makefile
-	./genmake .opt "-O3 -mtune=core2 -fomit-frame-pointer -funroll-loops " " "
+	./genmake .opt "-O3 -mtune=native -fomit-frame-pointer -funroll-loops " " "
 
